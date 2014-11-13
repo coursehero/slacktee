@@ -29,13 +29,13 @@ fi
 function show_help(){
     echo "usage: $me [options]"
     echo "  options:"
-    echo "    -h, --help         Show this help."
-    echo "    -n, --no-buffering Post input values without buffering."
-    echo "    -f, --file         Post input values as a file."
-    echo "    -c, --channel      Post input values to this channel."
-    echo "    -u, --username     This username is used for posting."
-    echo "    -i, --icon         This icon is used for posting."
-    echo "    -t, --title        This title is added to posts."
+    echo "    -h, --help                  Show this help."
+    echo "    -n, --no-buffering          Post input values without buffering."
+    echo "    -f, --file                  Post input values as a file."
+    echo "    -c, --channel channel_name  Post input values to this channel."
+    echo "    -u, --username user_name    This username is used for posting."
+    echo "    -i, --icon icon_name        This icon is used for posting."
+    echo "    -t, --title title_string    This title is added to posts."
 }
 
 function send_message(){
