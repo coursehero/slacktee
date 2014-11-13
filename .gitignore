@@ -1,0 +1,27 @@
+## generic files to ignore
+*~
+*.lock
+.DS_Store
+.DS_Store?
+*.swp
+*.out
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+## composer related
+composer.lock
+/vendor/
+composer.phar
+
+## editor related
+.idea
+
+## generator related
+generator/*
+
+## documentation related
+/docs/
