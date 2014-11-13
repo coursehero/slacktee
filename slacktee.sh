@@ -8,7 +8,7 @@ token=""            # Integration token. This is used for message posting.
 upload_token=""     # User token. This is used for uploading.
 channel=""          # Default channel to post messages. You don't have to add '#'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
-username="slacktee" # Default username to post messages. You don't have to add '#'.
+username="slacktee" # Default username to post messages.
 icon="bell"         # Default icon to post messages. You don't have to wrap it with ':'.
 
 # ----------
@@ -89,18 +89,23 @@ done
 # ----------
 
 if [[ $slack_domain == "" ]]; then
-        echo "Please setup slack domain."
-        exit 1
+    echo "Please setup slack domain."
+    exit 1
 fi
 
 if [[ $token == "" ]]; then
-        echo "Please setup access token."
-        exit 1
+    echo "Please setup access token."
+    exit 1
 fi
 
 if [[ $channel == "" ]]; then
-        echo "Please specify a channel."
-        exit 1
+    echo "Please specify a channel."
+    exit 1
+fi
+
+if [[ $mode == "file" && $upload_token == "" ]]; then
+    echo "Please setup upload token."
+    exit 1
 fi
 
 # ----------

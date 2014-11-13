@@ -1,7 +1,7 @@
 # slacktee #
 
 *slacktee* is a bash script that provides a similer functionality as [tee](http://en.wikipedia.org/wiki/Tee_(command)) command.
-Instead of wriing to files, *slacktee* redirects output to [Slack](https://slack.com/).
+Instead of writing the standard input to files, *slacktee* post it to [Slack](https://slack.com/).
 
 Requirements
 ------------
@@ -26,11 +26,8 @@ For more details about tokens, visit [Slack's API page](https://api.slack.com/).
 ```
 slack_domain=""     # Slack domain. You can find it in the URL. https:[Your slack domain].slack.com/
 token=""            # Integration token. This is used for message posting.
-upload_token=""     # User token. This is used for uploading.
+upload_token=""     # User token. This is used for file upload.
 channel=""          # Default channel to post messages. You don't have to add '#'.
-tmp_dir="/tmp"      # Temporary file is created in this directory.
-username="slacktee" # Default username to post messages. You don't have to add '#'.
-icon="bell"         # Default icon to post messages. You don't have to wrap it with ':'.
 ```
 
 Usage
@@ -64,4 +61,8 @@ To post the output as a file, use `-f` option.
 ls | slacktee.sh -f
 ```
 
+Of course, you can connect another command with pipe.
+```
+ls | slacktee.sh | email "ls" foo@example.com
+```
 
