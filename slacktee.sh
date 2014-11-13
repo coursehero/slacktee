@@ -137,12 +137,12 @@ if [[ $mode == "buffering" ]]; then
     send_message "$text"
 elif [[ $mode == "file" ]]; then
     result=`curl -F file=@$filename -F token=$upload_token https://slack.com/api/files.upload 2> /dev/null`
-    public_url=`echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g'`
+    access_url=`echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g'`
     download_url=`echo $result|awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\\//g'`
     if [[ $title != '' ]]; then
 	title="of $title"
     fi
-    text="Log file $title has been uploaded.\n$public_url\n\nYou can download it from the link below.\n$download_url"
+    text="Log file $title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
     send_message "$text"
     rm $filename
 fi

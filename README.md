@@ -1,7 +1,7 @@
 # slacktee #
 
 *slacktee* is a bash script that provides a similer functionality as [tee](http://en.wikipedia.org/wiki/Tee_(command)) command.
-Instead of wriing to files, *SlackTee* redirects output to [Slack](https://slack.com/).
+Instead of wriing to files, *slacktee* redirects output to [Slack](https://slack.com/).
 
 Requirements
 ------------
