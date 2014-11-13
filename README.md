@@ -1,7 +1,7 @@
 # slacktee #
 
 *slacktee* is a bash script that provides a similer functionality as [tee](http://en.wikipedia.org/wiki/Tee_(command)) command.
-Instead of writing the standard input to files, *slacktee* post it to [Slack](https://slack.com/).
+Instead of writing the standard input to files, *slacktee* posts it to [Slack](https://slack.com/).
 
 Requirements
 ------------
@@ -59,6 +59,11 @@ ls | slacktee.sh -n
 To post the output as a file, use `-f` option.
 ```
 ls | slacktee.sh -f
+```
+
+You can specify `channel`, `username`, `icon` and `title` too.
+```
+ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls"
 ```
 
 Of course, you can connect another command with pipe.
