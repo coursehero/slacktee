@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ----------
-# Configuration - Set appropriate values before using this script
+# Default Configuration
 # ----------
 slack_domain=""     # Slack domain. You can find it in the URL. https:[Your slack domain].slack.com/
 token=""            # Integration token. This is used for message posting.
@@ -17,6 +17,14 @@ icon="bell"         # Default icon to post messages. You don't have to wrap it w
 me=`basename $0`
 title=""
 mode="buffering"
+
+if [[ -e "/etc/slacktee.conf" ]]; then
+    . /etc/slacktee.conf
+fi
+
+if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
+    . $HOME/.slacktee
+fi
 
 function show_help(){
     echo "usage: $me [options]"
