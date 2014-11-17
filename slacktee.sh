@@ -128,7 +128,7 @@ if [[ $title != "" ]]; then
 	filetitle=`echo "$title"|sed 's/ //g'`
 	filetitle="$filetitle-"
     else
-	text="-- $title '--\n"
+	text="-- $title --\n"
     fi
 fi
 
