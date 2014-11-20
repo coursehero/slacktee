@@ -4,12 +4,12 @@
 # Default Configuration
 # ----------
 slack_domain=""     # Slack domain. You can find it in the URL. https:[Your slack domain].slack.com/
-token=""            # Integration token. This is used for message posting.
-upload_token=""     # User token. This is used for uploading.
+token=""            # Incoming WebHooks Integration token, see token=[token] in Example URL. This is used for message posting. 
+upload_token=""     # User API Authentication token. This is used for uploading.
 channel=""          # Default channel to post messages. You don't have to add '#'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
-icon="bell"         # Default icon to post messages. You don't have to wrap it with ':'.
+icon="bell"         # Default icon to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
 
 # ----------
 # Initialization
@@ -46,6 +46,17 @@ function send_message(){
     
         post_result=`curl -X POST --data-urlencode "payload=$json" "https://$slack_domain.slack.com/services/hooks/incoming-webhook?token=$token" 2>/dev/null`
     fi
+}
+
+function process_line(){
+    if [[ $mode == "no-buffering" ]]; then
+	send_message "$title$line"
+    elif [[ $mode == "file" ]]; then
+	echo $line >> "$filename"
+    else
+	text="$text$line\n"
+    fi
+    echo $line
 }
 
 # ----------
@@ -136,15 +147,11 @@ timestamp=`date +'%m%d%Y-%H%M%S'`
 filename="$tmp_dir/$filetitle$$-$timestamp.log"
 
 while read line; do
-    if [[ $mode == "no-buffering" ]]; then
-	send_message "$title$line"
-    elif [[ $mode == "file" ]]; then
-	echo $line >> "$filename"
-    else
-	text="$text$line\n"
-    fi
-    echo $line
+    process_line line
 done
+if [[ -n $line ]]; then
+    process_line
+fi
 
 if [[ $mode == "buffering" ]]; then
     send_message "$text"
