@@ -76,3 +76,45 @@ Of course, you can connect another command with pipe.
 ls | slacktee.sh | email "ls" foo@example.com
 ```
 
+Travis-CI Integration
+---------------------
+
+You may want to integrate slacktee into Travis-CI in order to send additional
+logging information to your Slack channel. In this case, it is recommended that
+you **do not expose** your Incoming WebHook URL and API authentication token as
+plaintext values inside your slacktee.conf file.
+
+Instead, use the [encrypt command|https://github.com/travis-ci/travis.rb#encrypt]
+of the Travis client to set the SLACKTEE\_WEBHOOK and SLACKTEE\_TOKEN
+environment variables, and leave the *webhook_url* and *upload_token* values
+in your slacktee.conf empty. When *slacktee* runs, it will give priority to the
+environment variables, which Travis-CI will decrypt and set automatically during
+the build process. In this way those two values are kept secure.
+
+Example
+=======
+
+Modify slacktee.conf
+```
+webhook_url=""
+upload_token=""
+channel="Travis-CI"
+tmp_dir="/tmp"
+usarname="slacktee"
+icon="ghost"
+```
+
+Add the encrypted environment variables to the .travis.yml file in your git
+repository
+```bash
+travis encrypt SLACKTEE_WEBHOOK='https://hooks.slack.com/services/afternoonTEE/BMP2vsT72/ohNoDontTellUs' --add
+travis encrypt SLACKTEE_TOKEN='yoho-0987654321-1234567890-4488116622-abc123' --add
+```
+
+Looking at your travis.yml you will now see the following added
+```yaml
+env:
+  global:
+  - secure: 2YZabH8+UdzqyBWckojRDP9uudnCSYyxOOx1y85el69YdHwLDMD+dt49rAgIrmCWsWCWpUZ0ZRWV8vU2VFMffIhmikiqG7VoKHuN5PyY8qBwr9hq/ZI8gdwgjgfRIGtv/U89BTjMmc1g/6nJkSvMtiSUSK3Lopg0JCyuZsiyhzs=
+  - secure: TKpohmywdOneQkqGxJiF+S1N8oCdTWWGsXgjzNXWSvb23KDtvGq/W2SpWdFdwEHC9Y8NymoAPYRSW8MUQoiJ7NaQ1eZQuyx6/orjHpIgqiAuHrOSaMagzpKVG6Gtb87qDgov65ZOasyex1OtPQdfFtZBX67B6IVXkRPV+IA/+UX=
+```

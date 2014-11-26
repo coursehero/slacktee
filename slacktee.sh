@@ -26,6 +26,16 @@ if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
     . $HOME/.slacktee
 fi
 
+# Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
+if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
+    webhook_url=$SLACKTEE_WEBHOOK
+fi
+
+# Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
+if [[ "$SLACKTEE_TOKEN" != "" ]]; then
+    upload_token=$SLACKTEE_TOKEN
+fi
+
 function show_help(){
     echo "usage: $me [options]"
     echo "  options:"
