@@ -131,21 +131,26 @@ fi
 # ----------
 
 text=""
-if [[ $title != "" ]]; then
+if [[ -n $title || -n $link ]]; then
+    # Use link as title, if title is not specified 
+    if [[ -z $title ]]; then
+	title="$link"
+    fi
+
     if [[ $mode == "no-buffering" ]]; then
-        if [[ $link != "" ]]; then
+        if [[ -n $link ]]; then
             title="<$link|$title>: "
         else
             title="$title: "
         fi
     elif [[ $mode == "file" ]]; then
-        filetitle=`echo "$title"|sed 's/ //g'`
+        filetitle=`echo "$title"|sed 's/[ /:.]//g'`
         filetitle="$filetitle-"
-        if [[ $link != "" ]]; then
+        if [[ -n $link ]]; then
             title="<$link|$title>"
         fi
     else
-        if [[ $link != "" ]]; then
+        if [[ -n $link ]]; then
             text="-- <$link|$title> --\n"
         else
             text="-- $title --\n"
