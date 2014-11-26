@@ -3,13 +3,12 @@
 # ----------
 # Default Configuration
 # ----------
-slack_domain=""     # Slack domain. You can find it in the URL. https:[Your slack domain].slack.com/
-token=""            # Incoming WebHooks Integration token, see token=[token] in Example URL. This is used for message posting. 
-upload_token=""     # User API Authentication token. This is used for uploading.
-channel=""          # Default channel to post messages. You don't have to add '#'.
+webhook_url=""      # Incoming Webhooks integration URL
+upload_token=""     # The user's API authentication token, only used for file uploads
+channel=""          # Default channel to post messages. Don't add the '#' prefix.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
-icon="bell"         # Default icon to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+icon="ghost"        # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
 
 # ----------
 # Initialization
@@ -17,6 +16,7 @@ icon="bell"         # Default icon to post messages. You don't have to wrap it w
 me=`basename $0`
 title=""
 mode="buffering"
+link=""
 
 if [[ -e "/etc/slacktee.conf" ]]; then
     . /etc/slacktee.conf
@@ -32,29 +32,29 @@ function show_help(){
     echo "    -h, --help                  Show this help."
     echo "    -n, --no-buffering          Post input values without buffering."
     echo "    -f, --file                  Post input values as a file."
+    echo "    -l, --link                  Add a URL link to the message."
     echo "    -c, --channel channel_name  Post input values to this channel."
     echo "    -u, --username user_name    This username is used for posting."
-    echo "    -i, --icon icon_name        This icon is used for posting."
+    echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
 }
 
 function send_message(){
     message=$1
     if [[ $message != "" ]]; then
-	escapedText=$(echo \`\`\`$message\`\`\` | sed 's/"/\"/g' | sed "s/'/\'/g" )
-	json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\"}"
-    
-        post_result=`curl -X POST --data-urlencode "payload=$json" "https://$slack_domain.slack.com/services/hooks/incoming-webhook?token=$token" 2>/dev/null`
+        escapedText=$(echo \`\`\`$message\`\`\` | sed 's/"/\"/g' | sed "s/'/\'/g" )
+        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\"}"
+        post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
 }
 
 function process_line(){
     if [[ $mode == "no-buffering" ]]; then
-	send_message "$title$line"
+    send_message "$title$line"
     elif [[ $mode == "file" ]]; then
-	echo $line >> "$filename"
+    echo $line >> "$filename"
     else
-	text="$text$line\n"
+    text="$text$line\n"
     fi
     echo $line
 }
@@ -69,37 +69,41 @@ while [[ $# > 0 ]]; do
     shift
 
     case "$opt" in
-	-h|\?|--help)
+    -h|\?|--help)
             show_help
             exit 0
             ;;
-	-n|--no-buffering)  
+    -n|--no-buffering)
             mode="no-buffering"
             ;;
-	-f|--file)  
+    -f|--file)
             mode="file"
             ;;
-	-c|--channel)  
+    -l|--link)
+            link="$1"
+            shift
+            ;;
+    -c|--channel)
             channel="$1"
             shift
             ;;
-	-u|--username)  
+    -u|--username)
             username="$1"
             shift
             ;;
-	-i|--icon)  
+    -i|--icon)
             icon=":$1:"
             shift
             ;;
-	-t|--title) 
+    -t|--title)
             title="$1"
             shift
-	    ;;
+        ;;
         *)
             echo "illegal option $opt"
             show_help
             exit 1
-	    ;;
+        ;;
     esac
 done
 
@@ -107,23 +111,18 @@ done
 # Validate configurations
 # ----------
 
-if [[ $slack_domain == "" ]]; then
-    echo "Please setup slack domain."
+if [[ $webhook_url == "" && $mode != "file" ]]; then
+    echo "Please setup the webhook url of this incoming webhook integration."
     exit 1
 fi
 
-if [[ $token == "" ]]; then
-    echo "Please setup access token."
+if [[ $upload_token == "" && $mode == "file" ]]; then
+    echo "Please provide the authentication token for file uploads."
     exit 1
 fi
 
 if [[ $channel == "" ]]; then
     echo "Please specify a channel."
-    exit 1
-fi
-
-if [[ $mode == "file" && $upload_token == "" ]]; then
-    echo "Please setup upload token."
     exit 1
 fi
 
@@ -134,12 +133,20 @@ fi
 text=""
 if [[ $title != "" ]]; then
     if [[ $mode == "no-buffering" ]]; then
-	title="$title: "
+        if [[ $link != "" ]]; then
+            title="<$link|$title>"
+        else
+            title="$title: "
+        fi
     elif [[ $mode == "file" ]]; then
-	filetitle=`echo "$title"|sed 's/ //g'`
-	filetitle="$filetitle-"
+        filetitle=`echo "$title"|sed 's/ //g'`
+        filetitle="$filetitle-"
     else
-	text="-- $title --\n"
+        if [[ $link != "" ]]; then
+            text="-- <$link|$title> --\n"
+        else
+            text="-- $title --\n"
+        fi
     fi
 fi
 
@@ -160,7 +167,7 @@ elif [[ $mode == "file" ]]; then
     access_url=`echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g'`
     download_url=`echo $result|awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\\//g'`
     if [[ $title != '' ]]; then
-	title="of $title"
+    title="of $title"
     fi
     text="Log file $title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
     send_message "$text"
