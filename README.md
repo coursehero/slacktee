@@ -79,20 +79,19 @@ ls | slacktee.sh | email "ls" foo@example.com
 Travis-CI Integration
 ---------------------
 
-You may want to integrate slacktee into Travis-CI in order to send additional
+You may want to integrate *slacktee* into Travis-CI in order to send additional
 logging information to your Slack channel. In this case, it is recommended that
 you **do not expose** your Incoming WebHook URL and API authentication token as
 plaintext values inside your slacktee.conf file.
 
-Instead, use the [encrypt command|https://github.com/travis-ci/travis.rb#encrypt]
+Instead, use the [encrypt command](https://github.com/travis-ci/travis.rb#encrypt)
 of the Travis client to set the SLACKTEE\_WEBHOOK and SLACKTEE\_TOKEN
 environment variables, and leave the *webhook_url* and *upload_token* values
 in your slacktee.conf empty. When *slacktee* runs, it will give priority to the
 environment variables, which Travis-CI will decrypt and set automatically during
 the build process. In this way those two values are kept secure.
 
-Example
-=======
+### Example
 
 Modify slacktee.conf
 ```
