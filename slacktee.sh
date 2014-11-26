@@ -134,13 +134,16 @@ text=""
 if [[ $title != "" ]]; then
     if [[ $mode == "no-buffering" ]]; then
         if [[ $link != "" ]]; then
-            title="<$link|$title>"
+            title="<$link|$title>: "
         else
             title="$title: "
         fi
     elif [[ $mode == "file" ]]; then
         filetitle=`echo "$title"|sed 's/ //g'`
         filetitle="$filetitle-"
+        if [[ $link != "" ]]; then
+            title="<$link|$title>"
+        fi
     else
         if [[ $link != "" ]]; then
             text="-- <$link|$title> --\n"
