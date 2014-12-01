@@ -117,3 +117,10 @@ env:
   - secure: 2YZabH8+UdzqyBWckojRDP9uudnCSYyxOOx1y85el69YdHwLDMD+dt49rAgIrmCWsWCWpUZ0ZRWV8vU2VFMffIhmikiqG7VoKHuN5PyY8qBwr9hq/ZI8gdwgjgfRIGtv/U89BTjMmc1g/6nJkSvMtiSUSK3Lopg0JCyuZsiyhzs=
   - secure: TKpohmywdOneQkqGxJiF+S1N8oCdTWWGsXgjzNXWSvb23KDtvGq/W2SpWdFdwEHC9Y8NymoAPYRSW8MUQoiJ7NaQ1eZQuyx6/orjHpIgqiAuHrOSaMagzpKVG6Gtb87qDgov65ZOasyex1OtPQdfFtZBX67B6IVXkRPV+IA/+UX=
 ```
+
+An example travis.yml section using *slacktee* may look like:
+```yaml
+after_failure:
+- ls /path/to/build | ./slacktee.sh -t "$TRAVIS_REPO_SLUG $TRAVIS_JOB_NUMBER build directory"
+- cat /path/to/some.log | ./slacktee.sh -t "$TRAVIS_REPO_SLUG $TRAVIS_JOB_NUMBER some.log"
+```
