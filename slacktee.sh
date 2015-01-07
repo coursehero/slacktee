@@ -102,7 +102,7 @@ while [[ $# > 0 ]]; do
             shift
             ;;
     -i|--icon)
-            icon=":$1:"
+            icon="$1"
             shift
             ;;
     -t|--title)
