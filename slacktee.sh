@@ -17,6 +17,8 @@ me=`basename $0`
 title=""
 mode="buffering"
 link=""
+textWrapper=""
+parseMode="none"
 
 if [[ -e "/etc/slacktee.conf" ]]; then
     . /etc/slacktee.conf
@@ -47,13 +49,15 @@ function show_help(){
     echo "    -u, --username user_name    This username is used for posting."
     echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
+    echo "    -b, --code-block            Submit text as a code block (with triple back ticks)"
+    echo "    -p, --parse-links           Parse slack links (e.g. @username or #channel name)"
 }
 
 function send_message(){
     message=$1
     if [[ $message != "" ]]; then
-        escapedText=$(echo $message | sed 's/"/\"/g' | sed "s/'/\'/g" )
-        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\", \"parse\": \"full\"}"
+        escapedText=$(echo $textWrapper$message$textWrapper | sed 's/"/\"/g' | sed "s/'/\'/g" )
+        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\", \"parse\": \"$parseMode\"}"
         post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
 }
@@ -107,6 +111,14 @@ while [[ $# > 0 ]]; do
             ;;
     -t|--title)
             title="$1"
+            shift
+            ;;
+    -b|--code-block)
+            textWrapper="\`\`\`"
+            shift
+            ;;
+    -p|--parse-links)
+            parseMode="full"
             shift
         ;;
         *)
