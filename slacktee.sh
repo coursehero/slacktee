@@ -53,7 +53,7 @@ function send_message(){
     message=$1
     if [[ $message != "" ]]; then
         escapedText=$(echo \`\`\`$message\`\`\` | sed 's/"/\"/g' | sed "s/'/\'/g" )
-        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\"}"
+        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\", \"parse\": \"full\"}"
         post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
 }
