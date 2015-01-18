@@ -49,7 +49,12 @@ function show_help(){
     echo "    -u, --username user_name    This username is used for posting."
     echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
-    echo "    -m, --message-formatting    Submit text as a code block (with triple back ticks)"
+    echo "    -m, --message-formatting    Format used for messages."
+    echo "                                Options:"
+    echo "                                parsed|plain|code"
+    echo "                                \"parsed\" will formal channel or user links (e.g. @username) to full links."
+    echo "                                \"plain\" will submit the message exactly as passed in."
+    echo "                                \"code\" (default) will wrapp the message in triple back ticks to format it as code block"
 }
 
 function send_message(){
