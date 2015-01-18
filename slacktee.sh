@@ -17,7 +17,7 @@ me=`basename $0`
 title=""
 mode="buffering"
 link=""
-textWrapper=""
+textWrapper="\`\`\`"
 parseMode="none"
 
 if [[ -e "/etc/slacktee.conf" ]]; then
@@ -49,8 +49,7 @@ function show_help(){
     echo "    -u, --username user_name    This username is used for posting."
     echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
-    echo "    -b, --code-block            Submit text as a code block (with triple back ticks)"
-    echo "    -p, --parse-links           Parse slack links (e.g. @username or #channel name)"
+    echo "    -m, --message-formatting    Submit text as a code block (with triple back ticks)"
 }
 
 function send_message(){
@@ -113,12 +112,26 @@ while [[ $# > 0 ]]; do
             title="$1"
             shift
             ;;
-    -b|--code-block)
-            textWrapper="\`\`\`"
-            shift
-            ;;
-    -p|--parse-links)
-            parseMode="full"
+    -m|--message-formatting)
+            case "$1" in
+                parsed)
+                    textWrapper=""
+                    parseMode="full"
+                    ;;
+                plain)
+                    textWrapper=""
+                    parseMode="none"
+                    ;;
+                code)
+                    textWrapper="\`\`\`"
+                    parseMode="none"
+                    ;;
+                *)
+                    echo "unknown message formatting option"
+                    show_help
+                    exit 1
+                    ;;
+            esac
             shift
         ;;
         *)
