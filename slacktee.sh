@@ -54,7 +54,7 @@ function show_help(){
     echo "                                parsed|plain|code"
     echo "                                \"parsed\" will formal channel or user links (e.g. @username) to full links."
     echo "                                \"plain\" will submit the message exactly as passed in."
-    echo "                                \"code\" (default) will wrapp the message in triple back ticks to format it as code block"
+    echo "                                \"code\" (default) will wrap the message in triple back ticks to format it as code block."
 }
 
 function send_message(){
