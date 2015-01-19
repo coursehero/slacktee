@@ -18,7 +18,7 @@ title=""
 mode="buffering"
 link=""
 textWrapper="\`\`\`"
-parseMode="none"
+parseMode=""
 
 if [[ -e "/etc/slacktee.conf" ]]; then
     . /etc/slacktee.conf
@@ -49,19 +49,16 @@ function show_help(){
     echo "    -u, --username user_name    This username is used for posting."
     echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
-    echo "    -m, --message-formatting    Format used for messages."
-    echo "                                Options:"
-    echo "                                parsed|plain|code"
-    echo "                                \"parsed\" will format channel or user links (e.g. @username or #channelname) to full links."
-    echo "                                \"plain\" will submit the message exactly as passed in."
-    echo "                                \"code\" (default) will wrap the message in triple back ticks to format it as code block."
+    echo "    -m, --message-formatting    Switch message formatting (default|none|link_names|full)"
+    echo "                                See https://api.slack.com/docs/formatting for more details.
+    echo "    -p, --plain-text            Don't surround the post with triple backticks."
 }
 
 function send_message(){
     message=$1
     if [[ $message != "" ]]; then
         escapedText=$(echo $textWrapper$message$textWrapper | sed 's/"/\"/g' | sed "s/'/\'/g" )
-        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\", \"parse\": \"$parseMode\"}"
+        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\" $parseMode}"
         post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
 }
@@ -119,13 +116,17 @@ while [[ $# > 0 ]]; do
             ;;
     -m|--message-formatting)
             case "$1" in
-                parsed)
-                    textWrapper=""
-                    parseMode="full"
+                default)
+                    parseMode=""
+		    ;;
+                none)
+                    parseMode=", \"parse\": \"none\""
                     ;;
-                plain)
-                    textWrapper=""
-                    parseMode="none"
+                link_names)
+                    parseMode=", \"link_names\": \"1\""
+                    ;;
+                full)
+                    parseMode=", \"parse\": \"full\""
                     ;;
                 code)
                     textWrapper="\`\`\`"
@@ -139,6 +140,9 @@ while [[ $# > 0 ]]; do
             esac
             shift
         ;;
+    -p|--plain-text)
+            textWrapper=""
+	    ;;
         *)
             echo "illegal option $opt"
             show_help

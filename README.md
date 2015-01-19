@@ -49,6 +49,9 @@ usage: slacktee.sh [options]
     -u, --username user_name    This username is used for posting.
     -i, --icon emoji_name       This icon is used for posting.
     -t, --title title_string    This title is added to posts.
+    -m, --message-formatting    Switch message formatting (default|none|link_names|full)
+                                See https://api.slack.com/docs/formatting for more details.
+    -p, --plain-text            Don't surround the post with triple backticks.
 ```
 
 If you'd like to post the output of `ls` command, you can do it like this.
@@ -66,7 +69,7 @@ To post the output of `find` command as a file, use `-f` option.
 find /var -name "foobar" | slacktee.sh -f
 ```
 
-You can specify `channel`, `username`, `icon` `title`, and `link` too.
+You can specify `channel`, `username`, `icon`, `title`, and `link` too.
 ```
 ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
 ```
