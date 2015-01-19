@@ -50,7 +50,7 @@ function show_help(){
     echo "    -i, --icon emoji_name       This icon is used for posting."
     echo "    -t, --title title_string    This title is added to posts."
     echo "    -m, --message-formatting    Switch message formatting (default|none|link_names|full)"
-    echo "                                See https://api.slack.com/docs/formatting for more details.
+    echo "                                See https://api.slack.com/docs/formatting for more details."
     echo "    -p, --plain-text            Don't surround the post with triple backticks."
 }
 
