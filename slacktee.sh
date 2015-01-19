@@ -52,7 +52,7 @@ function show_help(){
     echo "    -m, --message-formatting    Format used for messages."
     echo "                                Options:"
     echo "                                parsed|plain|code"
-    echo "                                \"parsed\" will formal channel or user links (e.g. @username) to full links."
+    echo "                                \"parsed\" will format channel or user links (e.g. @username or #channelname) to full links."
     echo "                                \"plain\" will submit the message exactly as passed in."
     echo "                                \"code\" (default) will wrap the message in triple back ticks to format it as code block."
 }
