@@ -41,17 +41,17 @@ Feed input to *slacktee* through the pipe.
 ```
 usage: slacktee.sh [options]
   options:
-    -h, --help                  Show this help.
-    -n, --no-buffering          Post input values without buffering.
-    -f, --file                  Post input values as a file.
-    -l, --link                  Add a URL link to the message.
-    -c, --channel channel_name  Post input values to this channel.
-    -u, --username user_name    This username is used for posting.
-    -i, --icon emoji_name       This icon is used for posting.
-    -t, --title title_string    This title is added to posts.
-    -m, --message-formatting    Switch message formatting (default|none|link_names|full)
-                                See https://api.slack.com/docs/formatting for more details.
-    -p, --plain-text            Don't surround the post with triple backticks.
+    -h, --help                        Show this help.
+    -n, --no-buffering                Post input values without buffering.
+    -f, --file                        Post input values as a file.
+    -l, --link                        Add a URL link to the message.
+    -c, --channel channel_name        Post input values to this channel.
+    -u, --username user_name          This username is used for posting.
+    -i, --icon emoji_name             This icon is used for posting.
+    -t, --title title_string          This title is added to posts.
+    -m, --message-formatting format   Switch message formatting (none|link_names|full).
+                                      See https://api.slack.com/docs/formatting for more details.
+    -p, --plain-text                  Don't surround the post with triple backticks.
 ```
 
 If you'd like to post the output of `ls` command, you can do it like this.

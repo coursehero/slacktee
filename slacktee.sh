@@ -41,17 +41,17 @@ fi
 function show_help(){
     echo "usage: $me [options]"
     echo "  options:"
-    echo "    -h, --help                  Show this help."
-    echo "    -n, --no-buffering          Post input values without buffering."
-    echo "    -f, --file                  Post input values as a file."
-    echo "    -l, --link                  Add a URL link to the message."
-    echo "    -c, --channel channel_name  Post input values to this channel."
-    echo "    -u, --username user_name    This username is used for posting."
-    echo "    -i, --icon emoji_name       This icon is used for posting."
-    echo "    -t, --title title_string    This title is added to posts."
-    echo "    -m, --message-formatting    Switch message formatting (default|none|link_names|full)"
-    echo "                                See https://api.slack.com/docs/formatting for more details."
-    echo "    -p, --plain-text            Don't surround the post with triple backticks."
+    echo "    -h, --help                        Show this help."
+    echo "    -n, --no-buffering                Post input values without buffering."
+    echo "    -f, --file                        Post input values as a file."
+    echo "    -l, --link                        Add a URL link to the message."
+    echo "    -c, --channel channel_name        Post input values to this channel."
+    echo "    -u, --username user_name          This username is used for posting."
+    echo "    -i, --icon emoji_name             This icon is used for posting."
+    echo "    -t, --title title_string          This title is added to posts."
+    echo "    -m, --message-formatting format   Switch message formatting (none|link_names|full)."
+    echo "                                      See https://api.slack.com/docs/formatting for more details."
+    echo "    -p, --plain-text                  Don't surround the post with triple backticks."
 }
 
 function send_message(){
@@ -116,9 +116,6 @@ while [[ $# > 0 ]]; do
             ;;
     -m|--message-formatting)
             case "$1" in
-                default)
-                    parseMode=""
-		    ;;
                 none)
                     parseMode=", \"parse\": \"none\""
                     ;;
@@ -127,10 +124,6 @@ while [[ $# > 0 ]]; do
                     ;;
                 full)
                     parseMode=", \"parse\": \"full\""
-                    ;;
-                code)
-                    textWrapper="\`\`\`"
-                    parseMode="none"
                     ;;
                 *)
                     echo "unknown message formatting option"
