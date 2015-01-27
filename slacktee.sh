@@ -148,7 +148,7 @@ done
 # Validate configurations
 # ----------
 
-if [[ $webhook_url == "" && $mode != "file" ]]; then
+if [[ $webhook_url == "" ]]; then
     echo "Please setup the webhook url of this incoming webhook integration."
     exit 1
 fi
