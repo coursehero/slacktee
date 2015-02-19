@@ -22,6 +22,7 @@ Configuration
 
 Before start using *slacktee*, please set following variables in the script configuration file.
 *slacktee* reads the global configuration (/etc/slacktee.conf) first, then reads your local configuration (~/.slacktee).
+You can set up your local configuration file using interactive setup mode (--setup option).
 
 For more details about tokens, visit [Slack's API page](https://api.slack.com/).
 
@@ -52,6 +53,7 @@ usage: slacktee.sh [options]
     -m, --message-formatting format   Switch message formatting (none|link_names|full).
                                       See https://api.slack.com/docs/formatting for more details.
     -p, --plain-text                  Don't surround the post with triple backticks.
+    --setup                           Set up .slacktee file interactively.
 ```
 
 If you'd like to post the output of `ls` command, you can do it like this.

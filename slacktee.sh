@@ -5,7 +5,7 @@
 # ----------
 webhook_url=""      # Incoming Webhooks integration URL
 upload_token=""     # The user's API authentication token, only used for file uploads
-channel=""          # Default channel to post messages. Don't add the '#' prefix.
+channel="general"   # Default channel to post messages. Don't add the '#' prefix.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
 icon="ghost"        # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
@@ -52,6 +52,7 @@ function show_help(){
     echo "    -m, --message-formatting format   Switch message formatting (none|link_names|full)."
     echo "                                      See https://api.slack.com/docs/formatting for more details."
     echo "    -p, --plain-text                  Don't surround the post with triple backticks."
+    echo "    --setup                           Setup slacktee interactively."
 }
 
 function send_message(){
@@ -72,6 +73,57 @@ function process_line(){
     text="$text$line\n"
     fi
     echo $line
+}
+
+function setup(){
+    if [[ -z "$HOME" ]]; then
+      echo "\$HOME is not defined. Please set it first."
+      exit 1
+    fi
+
+    local_conf="$HOME/.slacktee"
+
+    if [[ -e "$local_conf" ]]; then
+      echo ".slacktee is found in your home directory."
+      read -p "Are you sure to overwrite it? [y/n] :" choice
+      case "$choice" in
+	  y|Y ) ;;
+	  * ) exit 0;; # Abort
+      esac
+    fi
+
+    # Start setup
+    read -p "Incoming Webhook URL [$webhook_url]: " input_webhook_url
+    if [[ -z "$input_webhook_url" ]]; then
+	input_webhook_url=$webhook_url
+    fi
+    read -p "Upload Token [$upload_token]: " input_upload_token
+    if [[ -z "$input_upload_token" ]]; then
+	input_upload_token=$upload_token
+    fi
+    read -p "Temporary Directory [$tmp_dir]: " input_tmp_dir
+    if [[ -z "$input_tmp_dir" ]]; then
+	input_tmp_dir=$tmp_dir
+    fi
+    read -p "Default Channel [$channel]: " input_channel
+    if [[ -z "$input_channel" ]]; then
+	input_channel=$channel
+    fi
+    read -p "Default Username [$username]: " input_username
+    if [[ -z "$input_username" ]]; then
+	input_username=$username
+    fi
+    read -p "Default Icon: [$icon]: " input_icon
+    if [[ -z "$input_icon" ]]; then
+	input_icon=$icon
+    fi
+
+    echo "webhook_url=\"$input_webhook_url\"" > "$local_conf"
+    echo "upload_token=\"$input_upload_token\"" >> "$local_conf"
+    echo "tmp_dir=\"$input_tmp_dir\"" >> "$local_conf"
+    echo "channel=\"$input_channel\"" >> "$local_conf"
+    echo "username=\"$input_username\"" >> "$local_conf"
+    echo "icon=\"$input_icon\"" >> "$local_conf"
 }
 
 # ----------
@@ -135,8 +187,13 @@ while [[ $# > 0 ]]; do
         ;;
     -p|--plain-text)
             textWrapper=""
-	    ;;
-        *)
+	;;
+	
+    --setup)
+            setup
+            exit 1
+	;;
+    *)
             echo "illegal option $opt"
             show_help
             exit 1
