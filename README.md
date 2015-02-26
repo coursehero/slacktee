@@ -11,11 +11,12 @@ Requirements
 Installation
 ------------
 
-Save `slacktee.sh` into your favorite place and make it executable as following:
+Please execute install.sh as shown below:
 ```
-chmod +x slacktee.sh
+bash ./install.sh
 ```
-Also, it might be a good idea to add `slacktee.sh` in your command search path. 
+install.sh copies slacktee.sh to `/usr/local/bin` and sets executable permission.
+After the installation, interactive setup starts automatically.
 
 Configuration
 ------------
