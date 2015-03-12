@@ -105,7 +105,7 @@ webhook_url=""
 upload_token=""
 channel="Travis-CI"
 tmp_dir="/tmp"
-usarname="slacktee"
+username="slacktee"
 icon="ghost"
 ```
 
