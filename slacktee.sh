@@ -56,9 +56,9 @@ function show_help(){
 }
 
 function send_message(){
-    message=$1
+    message="$1"
     if [[ $message != "" ]]; then
-        escapedText=$(echo $textWrapper$message$textWrapper | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
+        escapedText=$(echo "$textWrapper$message$textWrapper" | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
         json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\" $parseMode}"
         post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
@@ -68,11 +68,11 @@ function process_line(){
     if [[ $mode == "no-buffering" ]]; then
     send_message "$title$line"
     elif [[ $mode == "file" ]]; then
-    echo $line >> "$filename"
+    echo "$line" >> "$filename"
     else
     text="$text$line\n"
     fi
-    echo $line
+    echo "$line"
 }
 
 function setup(){
@@ -188,7 +188,7 @@ while [[ $# > 0 ]]; do
     -p|--plain-text)
             textWrapper=""
 	;;
-	
+
     --setup)
             setup
             exit 1
@@ -226,7 +226,7 @@ fi
 
 text=""
 if [[ -n $title || -n $link ]]; then
-    # Use link as title, if title is not specified 
+    # Use link as title, if title is not specified
     if [[ -z $title ]]; then
 	title="$link"
     fi
@@ -275,4 +275,3 @@ elif [[ $mode == "file" ]]; then
     send_message "$text"
     rm $filename
 fi
-
