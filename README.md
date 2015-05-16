@@ -34,6 +34,7 @@ channel=""          # Default channel to post messages. You don't have to add '#
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
 icon="ghost"        # Default emoji to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+attachment=""       # Default color of the attachments. If an empty string is specified, the attachments are not used.
 ```
 
 Usage
@@ -54,6 +55,11 @@ usage: slacktee.sh [options]
     -m, --message-formatting format   Switch message formatting (none|link_names|full).
                                       See https://api.slack.com/docs/formatting for more details.
     -p, --plain-text                  Don't surround the post with triple backticks.
+    -a, --attachment [color]          Use attachment (richly-formatted message)
+                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)
+                                      See https://api.slack.com/docs/attachments for more details.
+    -e, --field title value           Add a field to the attachment. You can specify this multiple times
+    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times
     --setup                           Set up .slacktee file interactively.
 ```
 

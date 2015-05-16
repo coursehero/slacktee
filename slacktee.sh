@@ -3,12 +3,13 @@
 # ----------
 # Default Configuration
 # ----------
-webhook_url=""      # Incoming Webhooks integration URL
-upload_token=""     # The user's API authentication token, only used for file uploads
-channel="general"   # Default channel to post messages. Don't add the '#' prefix.
-tmp_dir="/tmp"      # Temporary file is created in this directory.
-username="slacktee" # Default username to post messages.
-icon="ghost"        # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+webhook_url=""       # Incoming Webhooks integration URL
+upload_token=""      # The user's API authentication token, only used for file uploads
+channel="general"    # Default channel to post messages. Don't add the '#' prefix.
+tmp_dir="/tmp"       # Temporary file is created in this directory.
+username="slacktee"  # Default username to post messages.
+icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+attachment=""        # Default color of the attachments. If an empty string is specified, the attachments are not used.
 
 # ----------
 # Initialization
@@ -19,6 +20,7 @@ mode="buffering"
 link=""
 textWrapper="\`\`\`"
 parseMode=""
+fields=()
 
 if [[ -e "/etc/slacktee.conf" ]]; then
     . /etc/slacktee.conf
@@ -52,27 +54,68 @@ function show_help(){
     echo "    -m, --message-formatting format   Switch message formatting (none|link_names|full)."
     echo "                                      See https://api.slack.com/docs/formatting for more details."
     echo "    -p, --plain-text                  Don't surround the post with triple backticks."
+    echo "    -a, --attachment [color]          Use attachment (richly-formatted message)"
+    echo "                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)"
+    echo "                                      See https://api.slack.com/docs/attachments for more details."
+    echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
+    echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
     echo "    --setup                           Setup slacktee interactively."
 }
 
 function send_message(){
-    message=$1
+    message="$1"
+    escaped_message=$(echo "$textWrapper$message$textWrapper" | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
+    message_attr=""
     if [[ $message != "" ]]; then
-        escapedText=$(echo $textWrapper$message$textWrapper | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
-        json="{\"channel\": \"#$channel\", \"username\": \"$username\", \"text\": \"$escapedText\", \"icon_emoji\": \":$icon:\" $parseMode}"
+	if [[ -n $attachment ]]; then
+	    message_attr="\"attachments\": [{ \"color\": \"$attachment\", \"mrkdwn_in\": [\"text\", \"fields\"], \"text\": \"$escaped_message\" "
+
+	    if [[ -n $title ]]; then
+		message_attr="$message_attr, \"title\": \"$title\" "
+	    fi
+
+	    if [[ -n $link ]]; then
+		message_attr="$message_attr, \"title_link\": \"$link\" "
+	    fi
+
+	    if [[ $mode == "file" ]]; then
+		fields+=("{\"title\": \"Access URL\", \"value\": \"$access_url\" }")
+		fields+=("{\"title\": \"Download URL\", \"value\": \"$download_url\"}")
+	    fi
+
+	    if [[ ${#fields[@]} != 0 ]]; then
+		message_attr="$message_attr, \"fields\": ["
+		for field in "${fields[@]}"; do 
+		    message_attr="$message_attr $field,"
+		done
+		message_attr=${message_attr%?} # Remove last comma
+		message_attr="$message_attr ]"
+	    fi
+
+	    # Close attachment
+	    message_attr="$message_attr }], "
+	else
+	    message_attr="\"text\": \"$escaped_message\","	    
+	fi
+
+        json="{\"channel\": \"#$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
         post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
     fi
 }
 
 function process_line(){
     if [[ $mode == "no-buffering" ]]; then
-    send_message "$title$line"
+	prefix=''
+	if [[ -z $attachment ]]; then
+	    prefix=$title
+	fi
+	send_message "$prefix$1"
     elif [[ $mode == "file" ]]; then
-    echo $line >> "$filename"
+	echo "$1" >> "$filename"
     else
-    text="$text$line\n"
+	text="$text$1\n"
     fi
-    echo $line
+    echo "$line"
 }
 
 function setup(){
@@ -117,6 +160,12 @@ function setup(){
     if [[ -z "$input_icon" ]]; then
 	input_icon=$icon
     fi
+    read -p "Default color of the attachment. (empty string disables attachment) [$attachment]: " input_attachment
+    if [[ -z "$input_attachment" ]]; then
+	input_attachment=$attachment
+    elif [[ $input_attachment == "\"\"" || $input_attachment == "''" ]]; then
+	input_attachment=""
+    fi
 
     echo "webhook_url=\"$input_webhook_url\"" > "$local_conf"
     echo "upload_token=\"$input_upload_token\"" >> "$local_conf"
@@ -124,6 +173,7 @@ function setup(){
     echo "channel=\"$input_channel\"" >> "$local_conf"
     echo "username=\"$input_username\"" >> "$local_conf"
     echo "icon=\"$input_icon\"" >> "$local_conf"
+    echo "attachment=\"$input_attachment\"" >> "$local_conf"
 }
 
 # ----------
@@ -188,7 +238,58 @@ while [[ $# > 0 ]]; do
     -p|--plain-text)
             textWrapper=""
 	;;
-	
+
+   -a|--attachment)
+	    case "$1" in
+		-*|'')
+		    # Found next command line option
+		    attachment="#C0C0C0" # Default color
+		    ;;
+		\#*)
+		    # Found hex color code
+		    attachment="$1"
+		    shift
+		    ;;
+		good|warning|danger)
+		    # Predefined color
+		    attachment="$1"
+		    shift
+		    ;;
+		*)
+                    echo "unknown attachment color"
+                    show_help
+                    exit 1
+                    ;;
+	    esac
+	;;
+    -e|-s|--field|--short-field)
+	   case "$1" in
+	       -*|'')
+		   # Found next command line option or empty. Error.
+		   echo "field title was not specified"
+		   show_help
+		   exit 1
+		   ;;
+	       *)
+		   case "$2" in
+		       -*|'')
+		           # Found next command line option or empty. Error.
+			   echo "field value was not specified"
+			   show_help
+			   exit 1
+			   ;;			   
+		       *)
+			   if [[ $opt == "-s" || $opt == "--short-field" ]]; then
+			       fields+=("{\"title\": \"$1\", \"value\": \"$2\", \"short\": true}")
+			   else
+			       fields+=("{\"title\": \"$1\", \"value\": \"$2\"}")
+			   fi
+			   shift
+			   shift
+			   ;;
+		   esac
+	   esac
+	   ;;
     --setup)
             setup
             exit 1
@@ -226,29 +327,35 @@ fi
 
 text=""
 if [[ -n $title || -n $link ]]; then
-    # Use link as title, if title is not specified 
+    # Use link as title, if title is not specified
     if [[ -z $title ]]; then
 	title="$link"
     fi
 
-    if [[ $mode == "no-buffering" ]]; then
-        if [[ -n $link ]]; then
-            title="<$link|$title>: "
-        else
-            title="$title: "
-        fi
-    elif [[ $mode == "file" ]]; then
+    # Add title to filename in the file mode
+    if [[ $mode == "file" ]]; then
         filetitle=`echo "$title"|sed 's/[ /:.]//g'`
         filetitle="$filetitle-"
-        if [[ -n $link ]]; then
-            title="<$link|$title>"
-        fi
-    else
-        if [[ -n $link ]]; then
-            text="-- <$link|$title> --\n"
-        else
-            text="-- $title --\n"
-        fi
+    fi
+
+    if [[ -z $attachment ]]; then
+	if [[ $mode == "no-buffering" ]]; then
+            if [[ -n $link ]]; then
+		title="<$link|$title>: "
+            else
+		title="$title: "
+            fi
+	elif [[ $mode == "file" ]]; then
+            if [[ -n $link ]]; then
+		title="<$link|$title>"
+            fi
+	else
+            if [[ -n $link ]]; then
+		text="-- <$link|$title> --\n"
+            else
+		text="-- $title --\n"
+            fi
+	fi
     fi
 fi
 
@@ -256,10 +363,10 @@ timestamp=`date +'%m%d%Y-%H%M%S'`
 filename="$tmp_dir/$filetitle$$-$timestamp.log"
 
 while read line; do
-    process_line line
+    process_line "$line"
 done
 if [[ -n $line ]]; then
-    process_line
+    process_line "$line"
 fi
 
 if [[ $mode == "buffering" ]]; then
@@ -268,11 +375,14 @@ elif [[ $mode == "file" ]]; then
     result=`curl -F file=@$filename -F token=$upload_token https://slack.com/api/files.upload 2> /dev/null`
     access_url=`echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g'`
     download_url=`echo $result|awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\\//g'`
-    if [[ $title != '' ]]; then
-    title="of $title"
+    if [[ -n $attachment ]]; then
+	text="Input file has been uploaded"
+    else
+	if [[ $title != '' ]]; then
+	    title="of $title"
+	fi
+	text="Input file $title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
     fi
-    text="Log file $title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
     send_message "$text"
     rm $filename
 fi
-
