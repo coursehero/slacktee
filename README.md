@@ -3,6 +3,8 @@
 *slacktee* is a bash script that works like [tee](http://en.wikipedia.org/wiki/Tee_(command)) command.
 Instead of writing the standard input to files, *slacktee* posts it to [Slack](https://slack.com/).
 
+![Image](https://github.com/course-hero/slacktee/blob/slacktee-readme-images/slacktee_demo.gif)
+
 Requirements
 ------------
 
