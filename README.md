@@ -90,6 +90,8 @@ Of course, you can connect another command with pipe.
 ls | slacktee.sh | email "ls" foo@example.com
 ```
 
+You can find more examples on [Couse Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).
+
 Travis-CI Integration
 ---------------------
 
