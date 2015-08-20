@@ -14,7 +14,7 @@ attachment=""        # Default color of the attachments. If an empty string is s
 # ----------
 # Initialization
 # ----------
-me=`basename $0`
+me=$(basename $0)
 title=""
 mode="buffering"
 link=""
@@ -99,7 +99,7 @@ function send_message(){
 	fi
 
         json="{\"channel\": \"#$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
-        post_result=`curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null`
+        post_result=$(curl -X POST --data-urlencode "payload=$json" $webhook_url 2>/dev/null)
     fi
 }
 
@@ -334,7 +334,7 @@ if [[ -n $title || -n $link ]]; then
 
     # Add title to filename in the file mode
     if [[ $mode == "file" ]]; then
-        filetitle=`echo "$title"|sed 's/[ /:.]//g'`
+        filetitle=$(echo "$title"|sed 's/[ /:.]//g')
         filetitle="$filetitle-"
     fi
 
@@ -359,7 +359,7 @@ if [[ -n $title || -n $link ]]; then
     fi
 fi
 
-timestamp=`date +'%m%d%Y-%H%M%S'`
+timestamp=$(date +'%m%d%Y-%H%M%S')
 filename="$tmp_dir/$filetitle$$-$timestamp.log"
 
 while read line; do
@@ -372,9 +372,9 @@ fi
 if [[ $mode == "buffering" ]]; then
     send_message "$text"
 elif [[ $mode == "file" ]]; then
-    result=`curl -F file=@$filename -F token=$upload_token https://slack.com/api/files.upload 2> /dev/null`
-    access_url=`echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g'`
-    download_url=`echo $result|awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\\//g'`
+    result=$(curl -F file=@$filename -F token=$upload_token https://slack.com/api/files.upload 2> /dev/null)
+    access_url=$(echo $result|awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\\//g')
+    download_url=$(echo $result|awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\\//g')
     if [[ -n $attachment ]]; then
 	text="Input file has been uploaded"
     else
