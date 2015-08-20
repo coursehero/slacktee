@@ -181,7 +181,7 @@ function setup(){
 # ----------
 OPTIND=1
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
     opt="$1"
     shift
 
