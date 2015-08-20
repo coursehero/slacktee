@@ -99,7 +99,7 @@ function send_message(){
 	fi
 
         json="{\"channel\": \"#$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
-        post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2>/dev/null)
+        curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2>/dev/null
     fi
 }
 
