@@ -95,10 +95,10 @@ Of course, you can connect another command with pipe.
 ls | slacktee.sh | email "ls" foo@example.com
 ```
 
-Would you like to use richly-formatted message? Use `-a`, `-e` and `-s` option.
+Would you like to use richly-formatted message? Use `-a`, `-e` and `-s` options.
 
 ```
-cat error.log | slacktee.sh -a "danger" -e "Date and Time" "$(date)" -s "Host" $(hostname)
+cat error.log | slacktee.sh -a "danger" -e "Date and Time" "$(date)" -s "Host" "$(hostname)"
 ```
 
 Direct message to your teammate 'chuck'? Easy!
