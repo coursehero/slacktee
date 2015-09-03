@@ -5,7 +5,7 @@
 # ----------
 webhook_url=""       # Incoming Webhooks integration URL
 upload_token=""      # The user's API authentication token, only used for file uploads
-channel="general"    # Default channel to post messages. Don't add the '#' prefix.
+channel="general"    # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"       # Temporary file is created in this directory.
 username="slacktee"  # Default username to post messages.
 icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
@@ -47,7 +47,7 @@ function show_help(){
     echo "    -n, --no-buffering                Post input values without buffering."
     echo "    -f, --file                        Post input values as a file."
     echo "    -l, --link                        Add a URL link to the message."
-    echo "    -c, --channel channel_name        Post input values to this channel."
+    echo "    -c, --channel channel_name        Post input values to specified channel or user."
     echo "    -u, --username user_name          This username is used for posting."
     echo "    -i, --icon emoji_name             This icon is used for posting."
     echo "    -t, --title title_string          This title is added to posts."
@@ -98,7 +98,7 @@ function send_message(){
 	    message_attr="\"text\": \"$escaped_message\","	    
 	fi
 
-        json="{\"channel\": \"#$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
+        json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
         curl -X POST --data-urlencode "payload=$json" "$webhook_url" &> /dev/null
     fi
 }
@@ -319,6 +319,8 @@ fi
 if [[ $channel == "" ]]; then
     echo "Please specify a channel."
     exit 1
+elif [[ ( "$channel" != "#"* ) && ( "$channel" != "@"* ) ]]; then
+    channel="#$channel"
 fi
 
 # ----------

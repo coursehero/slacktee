@@ -55,6 +55,10 @@ echo "-- Channel (-c) --"
 echo "Channel (-c): Post to $CHANNEL" | $SLACKTEE '-c' $CHANNEL
 echo "-- Channel (--channel) --"
 echo "Channel (--channel): Post to $CHANNEL" | $SLACKTEE '--channel' $CHANNEL
+echo "-- Channel (-c) with # --"
+echo "Channel (-c): Post to $CHANNEL with #" | $SLACKTEE '-c' "#"$CHANNEL
+echo "-- Channel (-c) with @ (Shouldn't happen anything) --"
+echo "Channel (-c): Post to @slackbot" | $SLACKTEE '-c' "@slackbot"
 
 # Test 8: Username
 echo "-- Username (-u) --"

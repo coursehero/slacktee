@@ -32,7 +32,7 @@ For more details about tokens, visit [Slack's API page](https://api.slack.com/).
 ```
 webhook_url=""      # Incoming Webhooks integration URL. See https://my.slack.com/services/new/incoming-webhook
 upload_token=""     # The user's API authentication token, only used for file uploads. See https://api.slack.com/#auth
-channel=""          # Default channel to post messages. You don't have to add '#'.
+channel=""          # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
 icon="ghost"        # Default emoji to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
@@ -50,7 +50,7 @@ usage: slacktee.sh [options]
     -n, --no-buffering                Post input values without buffering.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
-    -c, --channel channel_name        Post input values to this channel.
+    -c, --channel channel_name        Post input values to specified channel or user.
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name             This icon is used for posting.
     -t, --title title_string          This title is added to posts.
@@ -66,28 +66,45 @@ usage: slacktee.sh [options]
 ```
 
 If you'd like to post the output of `ls` command, you can do it like this.
+
 ```
 ls | slacktee.sh
 ```
 
 To post the output of `tail -f` command line by line, use `-n` option.
+
 ```
 tail -f foobar.log | slacktee.sh -n
 ```
 
 To post the output of `find` command as a file, use `-f` option.
+
 ```
 find /var -name "foobar" | slacktee.sh -f
 ```
 
 You can specify `channel`, `username`, `icon`, `title`, and `link` too.
+
 ```
 ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
 ```
 
 Of course, you can connect another command with pipe.
+
 ```
 ls | slacktee.sh | email "ls" foo@example.com
+```
+
+Would you like to use richly-formatted message? Use `-a`, `-e` and `-s` option.
+
+```
+cat error.log | slacktee.sh -a "danger" -e "Date and Time" "$(date)" -s "Host" $(hostname)
+```
+
+Direct message to your teammate 'chuck'? Easy!
+
+```
+echo "Submit Your Expense Reimbursement Form By Friday!" | slacktee.sh -c "@chuck"
 ```
 
 You can find more examples on [Couse Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).
