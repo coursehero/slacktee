@@ -107,7 +107,7 @@ Direct message to your teammate 'chuck'? Easy!
 echo "Submit Your Expense Reimbursement Form By Friday!" | slacktee.sh -c "@chuck"
 ```
 
-You can find more examples on [Couse Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).
+You can find more examples on [Course Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).
 
 Travis-CI Integration
 ---------------------
