@@ -1,4 +1,7 @@
 install_path=/usr/local/bin
+if [[ $# -ne 0 ]]; then
+    install_path=$1
+fi
 script_dir=$( cd $(dirname $0); pwd -P )
 
 # Copy slacktee.sh to /usr/local/bin 
