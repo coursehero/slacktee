@@ -13,11 +13,20 @@ Requirements
 Installation
 ------------
 
-Please execute install.sh as shown below:
 ```
-bash ./install.sh
+# Clone git repository
+git clone https://github.com/course-hero/slacktee.git
+
+# Install slacktee.sh
+bash ./slacktee/install.sh
 ```
-install.sh copies slacktee.sh to `/usr/local/bin` and sets executable permission.
+
+install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. If you'd like to install it in the different directory, pass the target directory as a parameter of install.sh:
+
+```
+# Install slacktee.sh in ~/shell/
+bash ./slacktee/install.sh ~/shell/
+```
 After the installation, interactive setup starts automatically.
 
 Configuration
