@@ -99,7 +99,12 @@ function send_message(){
 	fi
 
         json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
-        curl -X POST --data-urlencode "payload=$json" "$webhook_url" &> /dev/null
+        post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
+        if [[ $post_result == "ok" ]]; then
+            exit 0
+        else
+            exit 1 # Error
+        fi
     fi
 }
 
