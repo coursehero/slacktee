@@ -1,7 +1,8 @@
 install_path=/usr/local/bin
+script_dir=$( cd $(dirname $0); pwd -P )
 
 # Copy slacktee.sh to /usr/local/bin 
-cp ./slacktee.sh $install_path
+cp $script_dir/slacktee.sh $install_path
 
 # Set execute permission
 chmod +x $install_path/slacktee.sh
