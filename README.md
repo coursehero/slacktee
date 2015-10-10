@@ -21,7 +21,7 @@ git clone https://github.com/course-hero/slacktee.git
 bash ./slacktee/install.sh
 ```
 
-install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. If you'd like to install it in the different directory, pass the target directory as a parameter of install.sh:
+install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. If you'd like to install it in the different directory, pass the target directory as a parameter of install.sh.
 
 ```
 # Install slacktee.sh in ~/shell/
