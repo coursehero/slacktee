@@ -103,6 +103,12 @@ echo "-- Attachment (-a) with long and short fields (-e/-s) --"
 echo "Attachment: Long and short fields" | $SLACKTEE '-a' '-e' 'Long Field (-e)' 'Long field Value' '-s' 'Short field 1 (-s)' 'Short field 1 Value' '-s' 'Short field 2 (-s)' 'Short field 2 Value'
 echo "Attachment with file" | $SLACKTEE '-a' '-f' '-e' 'Long Field (-e)' 'Long field Value' '-s' 'Short field 1 (-s)' 'Short field 1 Value' '-s' 'Short field 2 (-s)' 'Short field 2 Value'
 
+# Test 14: Check exit code
+echo "-- Check exit code : Success 0 --"
+echo "Check if the exit code is 0" | $SLACKTEE ; echo $?
+echo "-- Check exit code : Failure 1 --"
+echo "Check if the exit code is 1" | $SLACKTEE '-c' 'this-channel-does-not-exist' ; echo $?
+
 echo "Test is done!"
 
 
