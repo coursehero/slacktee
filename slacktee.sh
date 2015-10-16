@@ -173,12 +173,14 @@ function setup(){
     fi
 
     echo "webhook_url=\"$input_webhook_url\"" > "$local_conf"
-    echo "upload_token=\"$input_upload_token\"" >> "$local_conf"
-    echo "tmp_dir=\"$input_tmp_dir\"" >> "$local_conf"
-    echo "channel=\"$input_channel\"" >> "$local_conf"
-    echo "username=\"$input_username\"" >> "$local_conf"
-    echo "icon=\"$input_icon\"" >> "$local_conf"
-    echo "attachment=\"$input_attachment\"" >> "$local_conf"
+    {
+      echo "upload_token=\"$input_upload_token\""
+      echo "tmp_dir=\"$input_tmp_dir\""
+      echo "channel=\"$input_channel\""
+      echo "username=\"$input_username\""
+      echo "icon=\"$input_icon\""
+      echo "attachment=\"$input_attachment\""
+    } >> "$local_conf"
 }
 
 # ----------
