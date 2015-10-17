@@ -100,10 +100,9 @@ function send_message(){
 
         json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
         post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
+	exit_code=1
         if [[ $post_result == "ok" ]]; then
-            exit 0
-        else
-            exit 1 # Error
+            exit_code=0
         fi
     fi
 }
@@ -395,3 +394,5 @@ elif [[ $mode == "file" ]]; then
     send_message "$text"
     rm "$filename"
 fi
+
+exit $exit_code
