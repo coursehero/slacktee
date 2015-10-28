@@ -45,6 +45,7 @@ channel=""          # Default channel to post messages. '#' is prepended, if it 
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
 icon="ghost"        # Default emoji to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+icon_url=""         # Default emoji url to post messages.
 attachment=""       # Default color of the attachments. If an empty string is specified, the attachments are not used.
 ```
 
@@ -62,6 +63,7 @@ usage: slacktee.sh [options]
     -c, --channel channel_name        Post input values to specified channel or user.
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name             This icon is used for posting.
+    --iconurl icon_url                This url is used as icon for posting.
     -t, --title title_string          This title is added to posts.
     -m, --message-formatting format   Switch message formatting (none|link_names|full).
                                       See https://api.slack.com/docs/formatting for more details.
@@ -92,10 +94,11 @@ To post the output of `find` command as a file, use `-f` option.
 find /var -name "foobar" | slacktee.sh -f
 ```
 
-You can specify `channel`, `username`, `icon`, `title`, and `link` too.
+You can specify `channel`, `username`, `icon`, `title`, and `link` too. Instead of emoji icon (-i), you may provide an image url (--iconurl).
 
 ```
 ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
+ls | slacktee.sh -c "general" -u "slacktee" --iconurl "http://mirrors.creativecommons.org/presskit/icons/cc.png" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
 ```
 
 Of course, you can connect another command with pipe.
