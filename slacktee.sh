@@ -338,6 +338,11 @@ elif [[ ( "$channel" != "#"* ) && ( "$channel" != "@"* ) ]]; then
     channel="#$channel"
 fi
 
+if [[ -n "$icon" ]]; then
+	icon=${icon#:} # remove leading ':'
+	icon=${icon%:} # remove trailing ':'
+fi
+
 # ----------
 # Start script
 # ----------
