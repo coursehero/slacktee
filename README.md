@@ -62,8 +62,8 @@ usage: slacktee.sh [options]
     -l, --link                        Add a URL link to the message.
     -c, --channel channel_name        Post input values to specified channel or user.
     -u, --username user_name          This username is used for posting.
-    -i, --icon emoji_name             This icon is used for posting.
-    --iconurl icon_url                This url is used as icon for posting.
+    -i, --icon emoji_name|url         This icon is used for posting. You can use a word
+                                      from http://www.emoji-cheat-sheet.com or a direct url to an image.
     -t, --title title_string          This title is added to posts.
     -m, --message-formatting format   Switch message formatting (none|link_names|full).
                                       See https://api.slack.com/docs/formatting for more details.
@@ -94,11 +94,11 @@ To post the output of `find` command as a file, use `-f` option.
 find /var -name "foobar" | slacktee.sh -f
 ```
 
-You can specify `channel`, `username`, `icon`, `title`, and `link` too. Instead of emoji icon (-i), you may provide an image url (--iconurl).
+You can specify `channel`, `username`, `icon`, `title`, and `link` too. Instead of emoji icon, you may provide an image url.
 
 ```
 ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
-ls | slacktee.sh -c "general" -u "slacktee" --iconurl "http://mirrors.creativecommons.org/presskit/icons/cc.png" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
+ls | slacktee.sh -c "general" -u "slacktee" -i "http://mirrors.creativecommons.org/presskit/icons/cc.png" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
 ```
 
 Of course, you can connect another command with pipe.

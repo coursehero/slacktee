@@ -8,8 +8,7 @@ upload_token=""      # The user's API authentication token, only used for file u
 channel="general"    # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"       # Temporary file is created in this directory.
 username="slacktee"  # Default username to post messages.
-icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
-icon_url=""          # Default emoji url to post messages.
+icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com; can be a url too.
 attachment=""        # Default color of the attachments. If an empty string is specified, the attachments are not used.
 
 # ----------
@@ -100,7 +99,15 @@ function send_message(){
 	    message_attr="\"text\": \"$escaped_message\","	    
 	fi
 
-        json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\", \"icon_url\": \"$icon_url\" $parseMode}"
+	icon_url=""
+	icon_emoji=""
+	if echo "$icon" | grep -q "^https\?://.*"; then
+		icon_url="$icon"
+	else
+		icon_emoji=":$icon:"
+	fi
+
+        json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \"$icon_emoji\", \"icon_url\": \"$icon_url\" $parseMode}"
         post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
 	exit_code=1
         if [[ $post_result == "ok" ]]; then
@@ -217,14 +224,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
     -i|--icon)
-            case "$1" in
-              http://*|https://*)
-                icon_url="$1"
-                ;;
-              *)
-                icon="$1"
-                ;;
-            esac
+            icon="$1"
             shift
             ;;
     -t|--title)
