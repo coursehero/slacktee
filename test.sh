@@ -71,6 +71,8 @@ echo "-- Icon (-i) --"
 echo "Icon test: bell" | $SLACKTEE '-i' 'bell' '-u' 'Icon Test 1' # We need to change the username to show icon
 echo "-- Icon (--icon) --"
 echo "Icon test: grin" | $SLACKTEE '--icon' 'grin' '-u' 'Icon Test 2' 
+echo "-- Icon (-i with URL) --"
+echo "Icon test: url" | $SLACKTEE '-i' 'http://mirrors.creativecommons.org/presskit/icons/cc.png' '-u' 'Icon Test 3'
 
 # Test 10: Message formatting
 echo "-- Message formatting (-m) with link_names --"

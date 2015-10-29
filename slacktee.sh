@@ -8,7 +8,7 @@ upload_token=""      # The user's API authentication token, only used for file u
 channel="general"    # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"       # Temporary file is created in this directory.
 username="slacktee"  # Default username to post messages.
-icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com.
+icon="ghost"         # Default emoji to post messages. Don't wrap it with ':'. See http://www.emoji-cheat-sheet.com; can be a url too.
 attachment=""        # Default color of the attachments. If an empty string is specified, the attachments are not used.
 
 # ----------
@@ -49,7 +49,8 @@ function show_help(){
     echo "    -l, --link                        Add a URL link to the message."
     echo "    -c, --channel channel_name        Post input values to specified channel or user."
     echo "    -u, --username user_name          This username is used for posting."
-    echo "    -i, --icon emoji_name             This icon is used for posting."
+    echo "    -i, --icon emoji_name|url         This icon is used for posting. You can use a word"
+    echo "                                      from http://www.emoji-cheat-sheet.com or a direct url to an image."
     echo "    -t, --title title_string          This title is added to posts."
     echo "    -m, --message-formatting format   Switch message formatting (none|link_names|full)."
     echo "                                      See https://api.slack.com/docs/formatting for more details."
@@ -98,7 +99,15 @@ function send_message(){
 	    message_attr="\"text\": \"$escaped_message\","	    
 	fi
 
-        json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \":$icon:\" $parseMode}"
+	icon_url=""
+	icon_emoji=""
+	if echo "$icon" | grep -q "^https\?://.*"; then
+		icon_url="$icon"
+	else
+		icon_emoji=":$icon:"
+	fi
+
+        json="{\"channel\": \"$channel\", \"username\": \"$username\", $message_attr \"icon_emoji\": \"$icon_emoji\", \"icon_url\": \"$icon_url\" $parseMode}"
         post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
 	exit_code=1
         if [[ $post_result == "ok" ]]; then
@@ -327,6 +336,11 @@ if [[ $channel == "" ]]; then
     exit 1
 elif [[ ( "$channel" != "#"* ) && ( "$channel" != "@"* ) ]]; then
     channel="#$channel"
+fi
+
+if [[ -n "$icon" ]]; then
+	icon=${icon#:} # remove leading ':'
+	icon=${icon%:} # remove trailing ':'
 fi
 
 # ----------
