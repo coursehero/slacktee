@@ -50,8 +50,8 @@ function show_help(){
     echo "    -l, --link                        Add a URL link to the message."
     echo "    -c, --channel channel_name        Post input values to specified channel or user."
     echo "    -u, --username user_name          This username is used for posting."
-    echo "    -i, --icon emoji_name             This icon is used for posting."
-    echo "    --iconurl icon_url                This url is used as icon for posting."
+    echo "    -i, --icon emoji_name|url         This icon is used for posting. You can use a word"
+    echo "                                      from http://www.emoji-cheat-sheet.com or a direct url to an image."
     echo "    -t, --title title_string          This title is added to posts."
     echo "    -m, --message-formatting format   Switch message formatting (none|link_names|full)."
     echo "                                      See https://api.slack.com/docs/formatting for more details."
@@ -217,11 +217,14 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
     -i|--icon)
-            icon="$1"
-            shift
-            ;;
-    --iconurl)
-            icon_url="$1"
+            case "$1" in
+              http://*|https://*)
+                icon_url="$1"
+                ;;
+              *)
+                icon="$1"
+                ;;
+            esac
             shift
             ;;
     -t|--title)
