@@ -44,8 +44,7 @@ upload_token=""     # The user's API authentication token, only used for file up
 channel=""          # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
-icon="ghost"        # Default emoji to post messages. You don't have to wrap it with ':'. See http://www.emoji-cheat-sheet.com.
-icon_url=""         # Default emoji url to post messages.
+icon="ghost"        # Default emoji or a direct url to an image to post messages. You don't have to wrap emoji with ':'. See http://www.emoji-cheat-sheet.com.
 attachment=""       # Default color of the attachments. If an empty string is specified, the attachments are not used.
 ```
 
@@ -94,10 +93,15 @@ To post the output of `find` command as a file, use `-f` option.
 find /var -name "foobar" | slacktee.sh -f
 ```
 
-You can specify `channel`, `username`, `icon`, `title`, and `link` too. Instead of emoji icon, you may provide an image url.
+You can specify `channel`, `username`, `icon`, `title`, and `link` too.
 
 ```
 ls | slacktee.sh -c "general" -u "slacktee" -i "shipit" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
+```
+
+Instead of emoji icon, you may provide an image url.
+
+```
 ls | slacktee.sh -c "general" -u "slacktee" -i "http://mirrors.creativecommons.org/presskit/icons/cc.png" -t "ls" -l "http://en.wikipedia.org/wiki/Ls"
 ```
 
