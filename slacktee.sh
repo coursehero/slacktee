@@ -116,19 +116,26 @@ function send_message(){
     fi
 }
 
-function process_line(){
-    if [[ $mode == "no-buffering" ]]; then
-	prefix=''
-	if [[ -z $attachment ]]; then
-	    prefix=$title
-	fi
-	send_message "$prefix$1"
-    elif [[ $mode == "file" ]]; then
-	echo "$1" >> "$filename"
-    else
-	text="$text$1\n"
-    fi
-    echo "$line"
+function process_line()
+{
+	line="$(echo "$1" | sed 's/\t/  /g')"
+	if [[ $mode == "no-buffering" ]]; then
+		prefix=''
+		if [[ -z $attachment ]]; then
+			prefix=$title
+		fi  
+		send_message "$prefix$line"
+	elif [[ $mode == "file" ]]; then
+		echo "$line" >> "$filename"
+	else
+		if [[ -z "$text" ]]
+		then
+			text="$line"
+		else
+			text="$text\n$line"
+		fi  
+	fi  
+	echo "$line"
 }
 
 function setup(){
@@ -384,7 +391,7 @@ fi
 timestamp=$(date +'%m%d%Y-%H%M%S')
 filename="$tmp_dir/$filetitle$$-$timestamp.log"
 
-while read line; do
+while IFS='' read line; do
     process_line "$line"
 done
 if [[ -n $line ]]; then
