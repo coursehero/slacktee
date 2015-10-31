@@ -118,7 +118,8 @@ function send_message(){
 
 function process_line()
 {
-	line="$(echo "$1" | sed 's/\t/  /g')"
+	echo "$1"
+	line="$(echo "$1" | sed $'s/\t/  /g')"
 	if [[ $mode == "no-buffering" ]]; then
 		prefix=''
 		if [[ -z $attachment ]]; then
@@ -135,7 +136,6 @@ function process_line()
 			text="$text\n$line"
 		fi  
 	fi  
-	echo "$line"
 }
 
 function setup(){
