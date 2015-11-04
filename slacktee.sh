@@ -65,7 +65,7 @@ function show_help(){
 
 function send_message(){
     message="$1"
-    escaped_message=$(echo "$textWrapper$message$textWrapper" | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
+    escaped_message=$(echo "$textWrapper\n$message\n$textWrapper" | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
     message_attr=""
     if [[ $message != "" ]]; then
 	if [[ -n $attachment ]]; then
@@ -129,8 +129,7 @@ function process_line()
 	elif [[ $mode == "file" ]]; then
 		echo "$line" >> "$filename"
 	else
-		if [[ -z "$text" ]]
-		then
+		if [[ -z "$text" ]]; then
 			text="$line"
 		else
 			text="$text\n$line"
