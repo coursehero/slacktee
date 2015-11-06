@@ -120,8 +120,8 @@ function send_message()
 
 function process_line()
 {
-	echo "$1"
-	line="$(echo "$1" | sed $'s/\t/  /g')"
+	printf "%s\n" "$1"
+	line="$(printf "%s\n" "$1" | sed $'s/\t/  /g')"
 	if [[ $mode == "no-buffering" ]]; then
 		prefix=''
 		if [[ -z $attachment ]]; then
@@ -129,7 +129,7 @@ function process_line()
 		fi  
 		send_message "$prefix$line"
 	elif [[ $mode == "file" ]]; then
-		echo "$line" >> "$filename"
+		printf "%s" "$line" >> "$filename"
 	else
 		if [[ -z "$text" ]]; then
 			text="$line"
