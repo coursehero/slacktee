@@ -397,6 +397,12 @@ fi
 timestamp="$(date +'%m%d%Y-%H%M%S')"
 filename="$tmp_dir/$filetitle$$-$timestamp.log"
 
+if [[ "$mode" == "file" ]]; then
+	touch $filename
+fi
+
+exit_code=0
+
 while IFS='' read line; do
 	process_line "$line"
 done
@@ -407,18 +413,21 @@ fi
 if [[ "$mode" == "buffering" ]]; then
 	send_message "$text"
 elif [[ "$mode" == "file" ]]; then
-	result="$(curl -F file=@"$filename" -F token="$upload_token" https://slack.com/api/files.upload 2> /dev/null)"
-	access_url="$(echo "$result" | awk 'match($0, /url":"([^"]*)"/) {print substr($0, RSTART+6, RLENGTH-7)}'|sed 's/\\//g')"
-	download_url="$(echo "$result" | awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\//g')"
-	if [[ -n "$attachment" ]]; then
-		text="Input file has been uploaded"
-	else
-		if [[ "$title" != "" ]]; then
-			title=" of $title"
+	if [[ -s "$filename" ]]; then
+		result="$(curl -F file=@"$filename" -F token="$upload_token" https://slack.com/api/files.upload 2> /dev/null)"
+		access_url="$(echo "$result" | awk 'match($0, /url":"([^"]*)"/) {print substr($0, RSTART+6, RLENGTH-7)}'|sed 's/\\//g')"
+		download_url="$(echo "$result" | awk 'match($0, /url_download":"([^"]*)"/) {print substr($0, RSTART+15, RLENGTH-16)}'|sed 's/\\//g')"
+		if [[ -n "$attachment" ]]; then
+			text="Input file has been uploaded"
+		else
+			if [[ "$title" != "" ]]; then
+				title=" of $title"
+			fi
+			text="Input file$title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
 		fi
-		text="Input file$title has been uploaded.\n$access_url\n\nYou can download it from the link below.\n$download_url"
+		send_message "$text"
 	fi
-	send_message "$text"
+	# Clean up the temp file
 	rm "$filename"
 fi
 
