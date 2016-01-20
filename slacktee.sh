@@ -414,7 +414,12 @@ if [[ "$mode" == "buffering" ]]; then
 	send_message "$text"
 elif [[ "$mode" == "file" ]]; then
 	if [[ -s "$filename" ]]; then
-		result="$(curl -F file=@"$filename" -F token="$upload_token" https://slack.com/api/files.upload 2> /dev/null)"
+		channels_param=""
+		if [[ ( "$channel" == "#"* ) ]]; then
+			# Set channels for making the file public
+			channels_param="-F channels=$channel"
+		fi
+		result="$(curl -F file=@"$filename" -F token="$upload_token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
 		access_url="$(echo "$result" | awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\//g')"
 		download_url="$(echo "$result" | awk 'match($0, /url_private_download":"([^"]*)"/) {print substr($0, RSTART+23, RLENGTH-24)}'|sed 's/\\//g')"
 		if [[ -n "$attachment" ]]; then
