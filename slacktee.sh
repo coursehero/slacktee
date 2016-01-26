@@ -22,23 +22,6 @@ textWrapper="\`\`\`"
 parseMode=""
 fields=()
 
-if [[ -e "/etc/slacktee.conf" ]]; then
-	. /etc/slacktee.conf
-fi
-
-if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
-	. "$HOME/.slacktee"
-fi
-
-# Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
-if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
-	webhook_url=$SLACKTEE_WEBHOOK
-fi
-
-# Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
-if [[ "$SLACKTEE_TOKEN" != "" ]]; then
-	upload_token=$SLACKTEE_TOKEN
-fi
 
 function show_help()
 {
@@ -61,8 +44,11 @@ function show_help()
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
 	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
 	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
+	echo "    --config                          Specify the location of the config file."
 	echo "    --setup                           Setup slacktee interactively."
 }
+
+
 
 function send_message()
 {
@@ -318,6 +304,10 @@ while [[ $# -gt 0 ]]; do
 					esac
 			esac
 			;;
+    --config)
+      CUSTOM_CONFIG=$1
+      shift
+      ;;
 		--setup)
 			setup
 			exit 1
@@ -329,6 +319,32 @@ while [[ $# -gt 0 ]]; do
 			;;
 	esac
 done
+
+# ---------
+# Read in our configurations
+# ---------
+if [[ -e "/etc/slacktee.conf" ]]; then
+  . /etc/slacktee.conf
+fi
+
+if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
+  . "$HOME/.slacktee"
+fi
+
+if [[ -e "$CUSTOM_CONFIG" ]]; then
+  . $CUSTOM_CONFIG
+fi
+
+# Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
+if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
+  webhook_url=$SLACKTEE_WEBHOOK
+fi
+
+# Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
+if [[ "$SLACKTEE_TOKEN" != "" ]]; then
+  upload_token=$SLACKTEE_TOKEN
+fi
+
 
 # ----------
 # Validate configurations
