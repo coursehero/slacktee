@@ -147,6 +147,9 @@ function setup()
 		esac
 	fi
 
+	# Load current local config
+	. $local_conf
+
 	# Start setup
 	read -p "Incoming Webhook URL [$webhook_url]: " input_webhook_url
 	if [[ -z "$input_webhook_url" ]]; then
@@ -215,15 +218,15 @@ while [[ $# -gt 0 ]]; do
 			shift
 			;;
 		-c|--channel)
-			channel="$1"
+			opt_channel="$1"
 			shift
 			;;
 		-u|--username)
-			username="$1"
+			opt_username="$1"
 			shift
 			;;
 		-i|--icon)
-			icon="$1"
+			opt_icon="$1"
 			shift
 			;;
 		-t|--title)
@@ -257,16 +260,16 @@ while [[ $# -gt 0 ]]; do
 			case "$1" in
 				-*|'')
 					# Found next command line option
-					attachment="#C0C0C0" # Default color
+					opt_attachment="#C0C0C0" # Default color
 					;;
 				\#*)
 					# Found hex color code
-					attachment="$1"
+					opt_attachment="$1"
 					shift
 					;;
 				good|warning|danger)
 					# Predefined color
-					attachment="$1"
+					opt_attachment="$1"
 					shift
 					;;
 				*)
@@ -345,6 +348,25 @@ if [[ "$SLACKTEE_TOKEN" != "" ]]; then
   upload_token=$SLACKTEE_TOKEN
 fi
 
+# Overwrite channel if it's specified in the command line option
+if [[ "$opt_channel" != "" ]]; then
+  channel=$opt_channel
+fi
+
+# Overwrite username if it's specified in the command line option
+if [[ "$opt_username" != "" ]]; then
+  username=$opt_username
+fi
+
+# Overwrite icon if it's specified in the command line option
+if [[ "$opt_icon" != "" ]]; then
+  icon=$opt_icon
+fi
+
+# Overwrite attachment if it's specified in the command line option
+if [[ "$opt_attachment" != "" ]]; then
+  attachment=$opt_attachment
+fi
 
 # ----------
 # Validate configurations
