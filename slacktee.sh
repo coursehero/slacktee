@@ -22,23 +22,6 @@ textWrapper="\`\`\`"
 parseMode=""
 fields=()
 
-if [[ -e "/etc/slacktee.conf" ]]; then
-	. /etc/slacktee.conf
-fi
-
-if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
-	. "$HOME/.slacktee"
-fi
-
-# Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
-if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
-	webhook_url=$SLACKTEE_WEBHOOK
-fi
-
-# Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
-if [[ "$SLACKTEE_TOKEN" != "" ]]; then
-	upload_token=$SLACKTEE_TOKEN
-fi
 
 function show_help()
 {
@@ -61,8 +44,11 @@ function show_help()
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
 	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
 	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
+	echo "    --config                          Specify the location of the config file."
 	echo "    --setup                           Setup slacktee interactively."
 }
+
+
 
 function send_message()
 {
@@ -161,6 +147,9 @@ function setup()
 		esac
 	fi
 
+	# Load current local config
+	. $local_conf
+
 	# Start setup
 	read -p "Incoming Webhook URL [$webhook_url]: " input_webhook_url
 	if [[ -z "$input_webhook_url" ]]; then
@@ -229,15 +218,15 @@ while [[ $# -gt 0 ]]; do
 			shift
 			;;
 		-c|--channel)
-			channel="$1"
+			opt_channel="$1"
 			shift
 			;;
 		-u|--username)
-			username="$1"
+			opt_username="$1"
 			shift
 			;;
 		-i|--icon)
-			icon="$1"
+			opt_icon="$1"
 			shift
 			;;
 		-t|--title)
@@ -271,16 +260,16 @@ while [[ $# -gt 0 ]]; do
 			case "$1" in
 				-*|'')
 					# Found next command line option
-					attachment="#C0C0C0" # Default color
+					opt_attachment="#C0C0C0" # Default color
 					;;
 				\#*)
 					# Found hex color code
-					attachment="$1"
+					opt_attachment="$1"
 					shift
 					;;
 				good|warning|danger)
 					# Predefined color
-					attachment="$1"
+					opt_attachment="$1"
 					shift
 					;;
 				*)
@@ -318,6 +307,10 @@ while [[ $# -gt 0 ]]; do
 					esac
 			esac
 			;;
+		--config)
+			CUSTOM_CONFIG=$1
+			shift
+			;;
 		--setup)
 			setup
 			exit 1
@@ -329,6 +322,51 @@ while [[ $# -gt 0 ]]; do
 			;;
 	esac
 done
+
+# ---------
+# Read in our configurations
+# ---------
+if [[ -e "/etc/slacktee.conf" ]]; then
+  . /etc/slacktee.conf
+fi
+
+if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
+  . "$HOME/.slacktee"
+fi
+
+if [[ -e "$CUSTOM_CONFIG" ]]; then
+  . $CUSTOM_CONFIG
+fi
+
+# Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
+if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
+  webhook_url=$SLACKTEE_WEBHOOK
+fi
+
+# Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
+if [[ "$SLACKTEE_TOKEN" != "" ]]; then
+  upload_token=$SLACKTEE_TOKEN
+fi
+
+# Overwrite channel if it's specified in the command line option
+if [[ "$opt_channel" != "" ]]; then
+  channel=$opt_channel
+fi
+
+# Overwrite username if it's specified in the command line option
+if [[ "$opt_username" != "" ]]; then
+  username=$opt_username
+fi
+
+# Overwrite icon if it's specified in the command line option
+if [[ "$opt_icon" != "" ]]; then
+  icon=$opt_icon
+fi
+
+# Overwrite attachment if it's specified in the command line option
+if [[ "$opt_attachment" != "" ]]; then
+  attachment=$opt_attachment
+fi
 
 # ----------
 # Validate configurations
