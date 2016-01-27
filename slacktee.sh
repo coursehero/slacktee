@@ -304,10 +304,10 @@ while [[ $# -gt 0 ]]; do
 					esac
 			esac
 			;;
-    --config)
-      CUSTOM_CONFIG=$1
-      shift
-      ;;
+		--config)
+			CUSTOM_CONFIG=$1
+			shift
+			;;
 		--setup)
 			setup
 			exit 1
