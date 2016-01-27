@@ -72,7 +72,7 @@ usage: slacktee.sh [options]
                                       See https://api.slack.com/docs/attachments for more details.
     -e, --field title value           Add a field to the attachment. You can specify this multiple times
     -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times
-    --config                          Specify the location of the config file.
+    --config config_file              Specify the location of the config file.
     --setup                           Set up .slacktee file interactively.
 ```
 

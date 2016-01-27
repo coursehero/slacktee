@@ -44,7 +44,7 @@ function show_help()
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
 	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
 	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
-	echo "    --config                          Specify the location of the config file."
+	echo "    --config config_file              Specify the location of the config file."
 	echo "    --setup                           Setup slacktee interactively."
 }
 
