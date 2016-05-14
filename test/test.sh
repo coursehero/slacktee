@@ -1,7 +1,7 @@
 # - Test set of slacktee.sh -
 
 # Test settings
-SLACKTEE="/bin/bash ./slacktee.sh"
+SLACKTEE="/bin/bash ../slacktee.sh"
 DATA="./test_data.txt"
 CHANNEL="sandbox"
 
