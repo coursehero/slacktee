@@ -318,10 +318,7 @@ while [[ $# -gt 0 ]]; do
 							exit 1
 							;;
 						*)
-							if [[ -z $opt_attachment ]]; then
-								# Use this color, if default color is not specified either in options or .slacktee
-								cond_default_color="$internal_default_color"
-							fi
+							# Set the color and the pattern to arrays
 							cond_colors+=("$1")
 							cond_patterns+=("$2")
 							shift
@@ -425,9 +422,9 @@ if [[ "$opt_attachment" != "" ]]; then
 	attachment="$opt_attachment"
 fi
 
-# Overwrite attachment if it's still empty and cond_default_color is set
-if [[ -z $attachment ]] && [[ -n $cond_default_color ]]; then
-	attachment="$cond_default_color"
+# Set the default color to attachment if it's still empty and the length of the cond_patterns is not 0
+if [[ -z $attachment ]] && [[ ${#cond_patterns[@]} != 0 ]]; then
+	attachment="$internal_default_color"
 fi
 
 # ----------
