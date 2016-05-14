@@ -21,7 +21,12 @@ link=""
 textWrapper="\`\`\`"
 parseMode=""
 fields=()
-
+# Since bash 3 doesn't support the associative array, we store colors and patterns separately
+cond_colors=()
+cond_patterns=()
+found_pattern_color=""
+# This color is used when 'attachment' is used without color specification
+internal_default_color="#C0C0C0"
 
 function show_help()
 {
@@ -42,6 +47,7 @@ function show_help()
 	echo "    -a, --attachment [color]          Use attachment (richly-formatted message)"
 	echo "                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)"
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
+	echo "    -o, --cond-color color pattern    Change the attachment color if the specified pattern is found in the input"
 	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
 	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
 	echo "    --config config_file              Specify the location of the config file."
@@ -57,7 +63,16 @@ function send_message()
 	message_attr=""
 	if [[ $message != "" ]]; then
 		if [[ -n $attachment ]]; then
-			message_attr="\"attachments\": [{ \"color\": \"$attachment\", \"mrkdwn_in\": [\"text\", \"fields\"], \"text\": \"$escaped_message\" "
+
+			# Set message color
+			message_color="$attachment"
+			if [[ -n $found_pattern_color ]]; then
+				message_color="$found_pattern_color"
+				# Reset with the default color for the next send
+				found_pattern_color="$attachment"
+			fi
+
+			message_attr="\"attachments\": [{ \"color\": \"$message_color\", \"mrkdwn_in\": [\"text\", \"fields\"], \"text\": \"$escaped_message\" "
 
 			if [[ -n $title ]]; then
 				message_attr="$message_attr, \"title\": \"$title\" "
@@ -108,6 +123,17 @@ function process_line()
 {
 	echo "$1"
 	line="$(echo "$1" | sed $'s/\t/  /g')"
+
+	# Check the patterns of the conditional colors
+	# If more than one pattern matches, the latest pattern wins
+	if [[ ${#cond_patterns[@]} != 0 ]]; then
+		for i in "${!cond_patterns[@]}"; do
+			if [[ $line =~ ${cond_patterns[$i]} ]]; then
+				found_pattern_color=${cond_colors[$i]}
+			fi
+		done
+	fi
+
 	if [[ $mode == "no-buffering" ]]; then
 		prefix=''
 		if [[ -z $attachment ]]; then
@@ -260,15 +286,10 @@ while [[ $# -gt 0 ]]; do
 			case "$1" in
 				-*|'')
 					# Found next command line option
-					opt_attachment="#C0C0C0" # Default color
+					opt_attachment="$internal_default_color" # Use default color
 					;;
-				\#*)
-					# Found hex color code
-					opt_attachment="$1"
-					shift
-					;;
-				good|warning|danger)
-					# Predefined color
+				\#*|good|warning|danger)
+					# Found hex color code or predefined colors
 					opt_attachment="$1"
 					shift
 					;;
@@ -277,6 +298,42 @@ while [[ $# -gt 0 ]]; do
 					show_help
 					exit 1
 					;;
+			esac
+			;;
+		-o|--cond-color)
+			case "$1" in
+				-*|'')
+					# Found next command line option or empty. Error.
+					echo "conditional color was not specified"
+					show_help
+					exit 1
+					;;
+				\#*|good|warning|danger)
+					# Found hex color code or predefined colors
+					case "$2" in
+						-*|'')
+							# Found next command line option or empty. Error.
+							echo "conditional color pattern was not specified"
+							show_help
+							exit 1
+							;;
+						*)
+							if [[ -z $opt_attachment ]]; then
+								# Use this color, if default color is not specified either in options or .slacktee
+								cond_default_color="$internal_default_color"
+							fi
+							cond_colors+=("$1")
+							cond_patterns+=("$2")
+							shift
+							shift
+							;;
+					esac
+					;;
+				*)
+					echo "unknown attachment color $2"
+					show_help
+					exit 1
+				;;
 			esac
 			;;
 		-e|-s|--field|--short-field)
@@ -327,45 +384,50 @@ done
 # Read in our configurations
 # ---------
 if [[ -e "/etc/slacktee.conf" ]]; then
-  . /etc/slacktee.conf
+	. /etc/slacktee.conf
 fi
 
 if [[ -n "$HOME" && -e "$HOME/.slacktee" ]]; then
-  . "$HOME/.slacktee"
+	. "$HOME/.slacktee"
 fi
 
 if [[ -e "$CUSTOM_CONFIG" ]]; then
-  . $CUSTOM_CONFIG
+	. $CUSTOM_CONFIG
 fi
 
 # Overwrite webhook_url if the environment variable SLACKTEE_WEBHOOK is set
 if [[ "$SLACKTEE_WEBHOOK" != "" ]]; then
-  webhook_url=$SLACKTEE_WEBHOOK
+	webhook_url="$SLACKTEE_WEBHOOK"
 fi
 
 # Overwrite upload_token if the environment variable SLACKTEE_TOKEN is set
 if [[ "$SLACKTEE_TOKEN" != "" ]]; then
-  upload_token=$SLACKTEE_TOKEN
+	upload_token="$SLACKTEE_TOKEN"
 fi
 
 # Overwrite channel if it's specified in the command line option
 if [[ "$opt_channel" != "" ]]; then
-  channel=$opt_channel
+	channel="$opt_channel"
 fi
 
 # Overwrite username if it's specified in the command line option
 if [[ "$opt_username" != "" ]]; then
-  username=$opt_username
+	username="$opt_username"
 fi
 
 # Overwrite icon if it's specified in the command line option
 if [[ "$opt_icon" != "" ]]; then
-  icon=$opt_icon
+	icon="$opt_icon"
 fi
 
 # Overwrite attachment if it's specified in the command line option
 if [[ "$opt_attachment" != "" ]]; then
-  attachment=$opt_attachment
+	attachment="$opt_attachment"
+fi
+
+# Overwrite attachment if it's still empty and cond_default_color is set
+if [[ -z $attachment ]] && [[ -n $cond_default_color ]]; then
+	attachment="$cond_default_color"
 fi
 
 # ----------
