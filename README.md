@@ -70,10 +70,13 @@ usage: slacktee.sh [options]
     -a, --attachment [color]          Use attachment (richly-formatted message)
                                       Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)
                                       See https://api.slack.com/docs/attachments for more details.
-    -e, --field title value           Add a field to the attachment. You can specify this multiple times
-    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times
+    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern is found in the input.
+                                      You can specify this multile times.
+                                      If more than one pattern matches, the latest matched pattern is used.
+    -e, --field title value           Add a field to the attachment. You can specify this multiple times.
+    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times.
     --config config_file              Specify the location of the config file.
-    --setup                           Set up .slacktee file interactively.
+    --setup                           Setup slacktee interactively.
 ```
 
 If you'd like to post the output of `ls` command, you can do it like this.
@@ -122,6 +125,14 @@ Direct message to your teammate 'chuck'? Easy!
 
 ```
 echo "Submit Your Expense Reimbursement Form By Friday!" | slacktee.sh -c "@chuck"
+```
+
+Conditional coloring helps you to notice important messages easier.
+If a specified Regex pattern matches the input, its corresponding color is used for posting the message. In the example below, the message color is green (good) by default, but the color becomes yellow (warning) if an input log starts with "Warning:". Also, it becomes red (danger) if the log starts with "Error:". 
+It's pretty useful, isn't it?
+
+```
+tail app.log | slacktee.sh -n -a "good" -o "warning" "^Warning:" -o "danger" "^Error:"
 ```
 
 You can find more examples on [Course Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).

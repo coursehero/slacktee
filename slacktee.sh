@@ -47,9 +47,11 @@ function show_help()
 	echo "    -a, --attachment [color]          Use attachment (richly-formatted message)"
 	echo "                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)"
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
-	echo "    -o, --cond-color color pattern    Change the attachment color if the specified pattern is found in the input"
-	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times"
-	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times"
+	echo "    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern is found in the input."
+	echo "                                      You can specify this multile times."
+	echo "                                      If more than one pattern matches, the latest matched pattern is used."
+	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times."
+	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times."
 	echo "    --config config_file              Specify the location of the config file."
 	echo "    --setup                           Setup slacktee interactively."
 }
@@ -125,7 +127,7 @@ function process_line()
 	line="$(echo "$1" | sed $'s/\t/  /g')"
 
 	# Check the patterns of the conditional colors
-	# If more than one pattern matches, the latest pattern wins
+	# If more than one pattern matches, the latest pattern is used
 	if [[ ${#cond_patterns[@]} != 0 ]]; then
 		for i in "${!cond_patterns[@]}"; do
 			if [[ $line =~ ${cond_patterns[$i]} ]]; then
