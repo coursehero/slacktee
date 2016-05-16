@@ -1,7 +1,7 @@
 # - Test set of slacktee.sh -
 
 # Test settings
-SLACKTEE="/bin/bash ./slacktee.sh"
+SLACKTEE="/bin/bash ../slacktee.sh"
 DATA="./test_data.txt"
 CHANNEL="sandbox"
 
@@ -105,7 +105,29 @@ echo "-- Attachment (-a) with long and short fields (-e/-s) --"
 echo "Attachment: Long and short fields" | $SLACKTEE '-a' '-e' 'Long Field (-e)' 'Long field Value' '-s' 'Short field 1 (-s)' 'Short field 1 Value' '-s' 'Short field 2 (-s)' 'Short field 2 Value'
 echo "Attachment with file" | $SLACKTEE '-a' '-f' '-e' 'Long Field (-e)' 'Long field Value' '-s' 'Short field 1 (-s)' 'Short field 1 Value' '-s' 'Short field 2 (-s)' 'Short field 2 Value'
 
-# Test 14: Check exit code
+# Test 14: Conditional coloring
+echo "-- Conditional Coloring (-o) without default color --"
+echo "Conditional Coloring (-o) without default color. This should be colored gray." | $SLACKTEE '-o' 'danger' 'no-match' 
+echo "-- Conditional Coloring (--cond-color) without default color --"
+echo "Conditional Coloring (--cond-color) without default color. This should be colored gray." | $SLACKTEE '--cond-color' 'danger' 'no-match' 
+echo "-- Conditional Coloring (-o) with default color --"
+echo "Conditional Conoloring (-o) with defautl color. This should be colored black." | $SLACKTEE '-o' 'danger' 'no-match' '-a' '#000000'
+echo "-- Conditional Coloring (-o) with default color defined by config file"
+echo "Conditional Conoloring (-o) with defautl color defined by config file. This should be colored black." | $SLACKTEE '-o' 'danger' 'no-match' '--config' './default-coloring.conf'
+echo "-- Conditional Coloring (-o) - Simple match in buffering mode"
+cat $DATA | $SLACKTEE '-t' 'Conditional Coloring (-o) - Simple match in buffering mode. This should be colored green (good).' '-o' 'good' '^1st'
+echo "-- Conditional Coloring (-o) - Simple match in no-buffering mode"
+cat $DATA | $SLACKTEE '-n' '-t' 'Conditional Coloring (-o) - Simple match in no-buffering mode. Only 1st message should be colored green (good).' '-o' 'good' '^1st'
+echo "-- Conditional Coloring (-o) - Simple match in file mode"
+cat $DATA | $SLACKTEE '-f' '-t' 'Conditional Coloring (-o) - Simple match in file mode. This should be colored green (good).' '-o' 'good' '^1st'
+echo "-- Conditional Coloring (-o) - Multiple matches in buffering mode"
+cat $DATA | $SLACKTEE '-t' 'Conditional Coloring (-o) - Multiple matches in buffering mode. This should be colored red (danger).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
+echo "-- Conditional Coloring (-o) - Multiple matches in no-buffering mode"
+cat $DATA | $SLACKTEE '-n' '-t' 'Conditional Coloring (-o) - Multiple matches in no-buffering mode. Each message should be colored differently (green, yellow and red).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
+echo "-- Conditional Coloring (-o) - Multiple matches in file mode"
+cat $DATA | $SLACKTEE '-f' '-t' 'Conditional Coloring (-o) - Multiple matches in file mode. This should be colored red (danger).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
+
+# Test 15: Check exit code
 echo "-- Check exit code : Success 0 --"
 echo "Check if the exit code is 0" | $SLACKTEE ; echo $?
 echo "-- Check exit code : Failure 1 --"
