@@ -70,7 +70,7 @@ usage: slacktee.sh [options]
     -a, --attachment [color]          Use attachment (richly-formatted message)
                                       Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)
                                       See https://api.slack.com/docs/attachments for more details.
-    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern is found in the input.
+    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern matches the input.
                                       You can specify this multile times.
                                       If more than one pattern matches, the latest matched pattern is used.
     -e, --field title value           Add a field to the attachment. You can specify this multiple times.
@@ -132,7 +132,7 @@ If a specified Regex pattern matches the input, its corresponding color is used 
 It's pretty useful, isn't it?
 
 ```
-tail app.log | slacktee.sh -n -a "good" -o "warning" "^Warning:" -o "danger" "^Error:"
+tail -f app.log | slacktee.sh -n -a "good" -o "warning" "^Warning:" -o "danger" "^Error:"
 ```
 
 You can find more examples on [Course Hero blog](http://www.coursehero.com/blog/2015/04/09/why-we-built-slacktee-a-custom-slack-integration/).
