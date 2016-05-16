@@ -329,7 +329,7 @@ while [[ $# -gt 0 ]]; do
 					esac
 					;;
 				*)
-					echo "unknown attachment color $2"
+					echo "unknown attachment color $1"
 					show_help
 					exit 1
 				;;
