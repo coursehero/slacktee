@@ -123,7 +123,7 @@ cat $DATA | $SLACKTEE '-f' '-t' 'Conditional Coloring (-o) - Simple match in fil
 echo "-- Conditional Coloring (-o) - Multiple matches in buffering mode"
 cat $DATA | $SLACKTEE '-t' 'Conditional Coloring (-o) - Multiple matches in buffering mode. This should be colored red (danger).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
 echo "-- Conditional Coloring (-o) - Multiple matches in no-buffering mode"
-cat $DATA | $SLACKTEE '-n' '-t' 'Conditional Coloring (-o) - Multiple matches in no-buffering mode. Each message should be colored differently(green, yellow and red).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
+cat $DATA | $SLACKTEE '-n' '-t' 'Conditional Coloring (-o) - Multiple matches in no-buffering mode. Each message should be colored differently (green, yellow and red).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
 echo "-- Conditional Coloring (-o) - Multiple matches in file mode"
 cat $DATA | $SLACKTEE '-f' '-t' 'Conditional Coloring (-o) - Multiple matches in file mode. This should be colored red (danger).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
 
