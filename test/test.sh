@@ -127,7 +127,19 @@ cat $DATA | $SLACKTEE '-n' '-t' 'Conditional Coloring (-o) - Multiple matches in
 echo "-- Conditional Coloring (-o) - Multiple matches in file mode"
 cat $DATA | $SLACKTEE '-f' '-t' 'Conditional Coloring (-o) - Multiple matches in file mode. This should be colored red (danger).' '-o' 'good' '^1st' '-o' 'warning' '2nd' '-o' 'danger' '3rd'
 
-# Test 15: Check exit code
+# Test 15: Conditional prefix
+echo "-- Conditional prefix (-d) in buffering mode --"
+cat $DATA | $SLACKTEE '-t' 'Conditional prefix (-d) in buffering mode' '-d' '[Matched]' '2nd'
+echo "-- Conditional prefix (--cond-prefix) in buffering mode --"
+cat $DATA | $SLACKTEE '-t' 'Conditional prefix (--cond-prefix) in buffering mode' '--cond-prefix' '[Matched]' '2nd'
+echo "-- Conditional prefix (-d) in no-buffering mode - Prefix should be added to 2nd line --"
+cat $DATA | $SLACKTEE '-t' 'Conditional prefix (-d) in no-buffering mode' '-d' '[Matched]' '2nd' '-n'
+echo "-- Conditional prefix (-d) in file mode --"
+cat $DATA | $SLACKTEE '-t' 'Conditional prefix (-d) in file mode' '-d' '[Matched]' '2nd' '-f'
+echo "-- Conditional prefix (-d) with attachment --"
+cat $DATA | $SLACKTEE '-t' 'Conditional prefix (-d) with attachment' '-d' '[Matched]' '2nd' '-a' 'good'
+
+# Test 16: Check exit code
 echo "-- Check exit code : Success 0 --"
 echo "Check if the exit code is 0" | $SLACKTEE ; echo $?
 echo "-- Check exit code : Failure 1 --"

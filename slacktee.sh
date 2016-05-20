@@ -22,11 +22,16 @@ textWrapper="\`\`\`"
 parseMode=""
 fields=()
 # Since bash 3 doesn't support the associative array, we store colors and patterns separately
-cond_colors=()
-cond_patterns=()
+cond_color_colors=()
+cond_color_patterns=()
 found_pattern_color=""
 # This color is used when 'attachment' is used without color specification
 internal_default_color="#C0C0C0"
+
+# Since bash 3 doesn't support the associative array, we store prefixes and patterns separately
+cond_prefix_prefixes=()
+cond_prefix_patterns=()
+found_title_prefix=""
 
 function show_help()
 {
@@ -47,11 +52,14 @@ function show_help()
 	echo "    -a, --attachment [color]          Use attachment (richly-formatted message)"
 	echo "                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)"
 	echo "                                      See https://api.slack.com/docs/attachments for more details."
-	echo "    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern is found in the input."
-	echo "                                      You can specify this multile times."
-	echo "                                      If more than one pattern matches, the latest matched pattern is used."
 	echo "    -e, --field title value           Add a field to the attachment. You can specify this multiple times."
 	echo "    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times."
+	echo "    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern matches the input."
+	echo "                                      You can specify this multile times."
+	echo "                                      If more than one pattern matches, the latest matched pattern is used."
+	echo "    -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input."
+	echo "                                      You can specify this multile times."
+	echo "                                      If more than one pattern matches, the latest matched pattern is used."
 	echo "    --config config_file              Specify the location of the config file."
 	echo "    --setup                           Setup slacktee interactively."
 }
@@ -61,6 +69,14 @@ function show_help()
 function send_message()
 {
 	message="$1"
+
+	# Prepend the prefix to the message, if it's set
+	if [[ -z $attachment && -n $found_pattern_prefix ]]; then
+		message="$found_pattern_prefix$message"
+		# Clear conditional prefix for the nest send
+		found_pattern_prefix=""
+	fi
+
 	escaped_message=$(echo "$textWrapper\n$message\n$textWrapper" | sed 's/"/\\"/g' | sed "s/'/\\'/g" )
 	message_attr=""
 	if [[ $message != "" ]]; then
@@ -75,6 +91,12 @@ function send_message()
 			fi
 
 			message_attr="\"attachments\": [{ \"color\": \"$message_color\", \"mrkdwn_in\": [\"text\", \"fields\"], \"text\": \"$escaped_message\" "
+
+			if [[ -n $found_pattern_prefix ]]; then
+				title="$found_pattern_prefix $title"
+				# Clear conditional prefix for the nest send
+				found_pattern_prefix=""
+			fi
 
 			if [[ -n $title ]]; then
 				message_attr="$message_attr, \"title\": \"$title\" "
@@ -128,10 +150,27 @@ function process_line()
 
 	# Check the patterns of the conditional colors
 	# If more than one pattern matches, the latest pattern is used
-	if [[ ${#cond_patterns[@]} != 0 ]]; then
-		for i in "${!cond_patterns[@]}"; do
-			if [[ $line =~ ${cond_patterns[$i]} ]]; then
-				found_pattern_color=${cond_colors[$i]}
+	if [[ ${#cond_color_patterns[@]} != 0 ]]; then
+		for i in "${!cond_color_patterns[@]}"; do
+			if [[ $line =~ ${cond_color_patterns[$i]} ]]; then
+				found_pattern_color=${cond_color_colors[$i]}
+			fi
+		done
+	fi
+
+	# Check the patterns of the conditional titles
+	# If more than one pattern matches, the latest pattern is used
+	if [[ ${#cond_prefix_patterns[@]} != 0 ]]; then
+		for i in "${!cond_prefix_patterns[@]}"; do
+			if [[ $line =~ ${cond_prefix_patterns[$i]} ]]; then
+				found_pattern_prefix=${cond_prefix_prefixes[$i]}
+				if [[ -n $attachment || $mode != "no-buffering" ]]; then
+					# Append a line break to the prefix for better formatting
+					found_pattern_prefix="$found_pattern_prefix\n"
+				else
+					# Append a space to the prefix for better formatting
+					found_pattern_prefix="$found_pattern_prefix "
+				fi
 			fi
 		done
 	fi
@@ -261,6 +300,34 @@ while [[ $# -gt 0 ]]; do
 			title="$1"
 			shift
 			;;
+		-d|--cond-prefix)
+			case "$1" in
+				-*|'')
+					# Found next command line option or empty. Error.
+					echo "a prefix of the conditional title was not specified"
+					show_help
+					exit 1
+					;;
+				*)
+					# Prefix should be found
+					case "$2" in
+						-*|'')
+							# Found next command line option or empty. Error.
+							echo "a pattern of the conditional title was not specified"
+							show_help
+							exit 1
+							;;
+						*)
+							# Set the prefix and the pattern to arrays
+							cond_prefix_prefixes+=("$1")
+							cond_prefix_patterns+=("$2")
+							shift
+							shift
+							;;
+					esac
+					;;
+			esac
+			;;
 		-m|--message-formatting)
 			case "$1" in
 				none)
@@ -306,7 +373,7 @@ while [[ $# -gt 0 ]]; do
 			case "$1" in
 				-*|'')
 					# Found next command line option or empty. Error.
-					echo "conditional color was not specified"
+					echo "a color of the conditional color was not specified"
 					show_help
 					exit 1
 					;;
@@ -315,14 +382,14 @@ while [[ $# -gt 0 ]]; do
 					case "$2" in
 						-*|'')
 							# Found next command line option or empty. Error.
-							echo "conditional color pattern was not specified"
+							echo "a pattern of the conditional color was not specified"
 							show_help
 							exit 1
 							;;
 						*)
 							# Set the color and the pattern to arrays
-							cond_colors+=("$1")
-							cond_patterns+=("$2")
+							cond_color_colors+=("$1")
+							cond_color_patterns+=("$2")
 							shift
 							shift
 							;;
@@ -424,8 +491,8 @@ if [[ "$opt_attachment" != "" ]]; then
 	attachment="$opt_attachment"
 fi
 
-# Set the default color to attachment if it's still empty and the length of the cond_patterns is not 0
-if [[ -z $attachment ]] && [[ ${#cond_patterns[@]} != 0 ]]; then
+# Set the default color to attachment if it's still empty and the length of the cond_color_patterns is not 0
+if [[ -z $attachment ]] && [[ ${#cond_color_patterns[@]} != 0 ]]; then
 	attachment="$internal_default_color"
 fi
 
