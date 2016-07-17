@@ -93,6 +93,7 @@ function send_message()
 			message_attr="\"attachments\": [{ \"color\": \"$message_color\", \"mrkdwn_in\": [\"text\", \"fields\"], \"text\": \"$escaped_message\" "
 
 			if [[ -n $found_pattern_prefix ]]; then
+				orig_title=$title
 				title="$found_pattern_prefix $title"
 				# Clear conditional prefix for the nest send
 				found_pattern_prefix=""
@@ -100,6 +101,8 @@ function send_message()
 
 			if [[ -n $title ]]; then
 				message_attr="$message_attr, \"title\": \"$title\" "
+				# Clear conditional prefix from title
+				title=$orig_title
 			fi
 
 			if [[ -n $link ]]; then
