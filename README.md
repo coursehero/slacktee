@@ -21,11 +21,14 @@ git clone https://github.com/course-hero/slacktee.git
 bash ./slacktee/install.sh
 ```
 
-install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. If you'd like to install it in the different directory, pass the target directory as a parameter of install.sh.
+install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. 
+
+If you'd like to install it in the different directory such as `/usr/bin`, pass the target directory as a parameter of install.sh. 
+By default, `/usr/local/bin` may not be included in your `$PATH` environment variable (you should be aware of this when you use *slacktee* in *crontab*). So, if you would like to use *slacktee* without specifying its full path, coping it to `/usr/bin` may be a good idea.
 
 ```
-# Install slacktee.sh in ~/shell/
-bash ./slacktee/install.sh ~/shell/
+# Install slacktee.sh in /usr/bin
+bash ./slacktee/install.sh /usr/bin
 ```
 After the installation, interactive setup starts automatically.
 
