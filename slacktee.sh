@@ -42,7 +42,7 @@ function err_exit()
 }
 function cleanup() 
 {
-	[[ -f $filename ]] && rm -v "$filename"
+	[[ -f $filename ]] && rm "$filename"
 }
 
 function show_help()
