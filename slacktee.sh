@@ -33,6 +33,15 @@ cond_prefix_prefixes=()
 cond_prefix_patterns=()
 found_title_prefix=""
 
+function escape_string()
+{
+	local result=$(echo "$1" \
+		| sed 's/\\/\\\\/g' \
+		| sed 's/"/\\"/g' \
+		| sed "s/'/\\'/g")
+	echo "$result"
+}
+
 function err_exit() 
 {
 	exit_code=$1
@@ -40,6 +49,7 @@ function err_exit()
 	echo "$@" > /dev/null >&2
 	exit $exit_code
 }
+
 function cleanup() 
 {
 	[[ -f $filename ]] && rm "$filename"
@@ -92,9 +102,7 @@ function send_message()
 		found_pattern_prefix=""
 	fi
 
-	escaped_message=$(echo "$textWrapper\n$message\n$textWrapper" \
-		| sed 's/"/\\"/g' \
-		| sed "s/'/\\'/g")
+	wrapped_message=$(echo "$textWrapper\n$message\n$textWrapper")
 	message_attr=""
 	if [[ $message != "" ]]; then
 		if [[ -n $attachment ]]; then
@@ -110,7 +118,7 @@ function send_message()
 			message_attr="\"attachments\": [{ \
                           \"color\": \"$message_color\", \
                           \"mrkdwn_in\": [\"text\", \"fields\"], \
-                          \"text\": \"$escaped_message\""
+                          \"text\": \"$wrapped_message\""
 
 			if [[ -n $found_pattern_prefix ]]; then
 				orig_title=$title
@@ -150,7 +158,7 @@ function send_message()
 			# Close attachment
 			message_attr="$message_attr }], "
 		else
-			message_attr="\"text\": \"$escaped_message\","	    
+			message_attr="\"text\": \"$wrapped_message\","	    
 		fi
 
 		icon_url=""
@@ -160,6 +168,8 @@ function send_message()
 		else
 			icon_emoji=":$icon:"
 		fi
+
+		username=$(escape_string "$username")
 
 		json="{\
                   \"channel\": \"$channel\", \
@@ -177,7 +187,9 @@ function send_message()
 function process_line()
 {
 	echo "$1"
-	line="$(echo "$1" | sed $'s/\t/  /g')"
+
+	# Escape special characters.
+	line=$(escape_string "$1")
 
 	# Check the patterns of the conditional colors
 	# If more than one pattern matches, the latest pattern is used
@@ -213,7 +225,8 @@ function process_line()
 		fi  
 		send_message "$prefix$line"
 	elif [[ $mode == "file" ]]; then
-		echo "$line" >> "$filename"
+		# We should use unescaped value in the file mode
+		echo "$1" >> "$filename"
 	else
 		if [[ -z "$text" ]]; then
 			text="$line"
@@ -348,7 +361,8 @@ function parse_args()
 								;;
 							*)
 								# Set the prefix and the pattern to arrays
-								cond_prefix_prefixes+=("$1")
+								cond_prefix_value=$(escape_string "$1")
+								cond_prefix_prefixes+=("$cond_prefix_value")
 								cond_prefix_patterns+=("$2")
 								shift 2
 								;;
@@ -440,10 +454,12 @@ function parse_args()
 								show_help
 								;;			   
 							*)
+								field_title=$(escape_string "$1")
+								field_value=$(escape_string "$2")
 								if [[ $opt == "-s" || $opt == "--short-field" ]]; then
-									fields+=("{\"title\": \"$1\", \"value\": \"$2\", \"short\": true}")
+									fields+=("{\"title\": \"$field_title\", \"value\": \"$field_value\", \"short\": true}")
 								else
-									fields+=("{\"title\": \"$1\", \"value\": \"$2\"}")
+									fields+=("{\"title\": \"$field_title\", \"value\": \"$field_value\"}")
 								fi
 								shift
 								shift
@@ -562,9 +578,13 @@ function main()
 			title="$link"
 		fi
 
+		# Escape title
+		title=$(escape_string "$title")
+
 		# Add title to filename in the file mode
 		if [[ "$mode" == "file" ]]; then
-			filetitle=$(echo "$title"|sed 's/[ /:.]//g')
+			# Remove special characters for the file title
+			filetitle=$(echo "$title"|sed 's/[ \/:."]//g'|sed "s/'//g")
 			filetitle="$filetitle-"
 		fi
 
@@ -596,7 +616,7 @@ function main()
 		touch $filename
 	fi
 
-	while IFS='' read line; do
+	while IFS='' read -r line; do
 		process_line "$line"
 	done
 	if [[ -n $line ]]; then

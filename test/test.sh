@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # - Test set of slacktee.sh -
 
 # Test settings
@@ -76,11 +77,11 @@ echo "Icon test: url" | $SLACKTEE '-i' 'http://mirrors.creativecommons.org/press
 
 # Test 10: Message formatting
 echo "-- Message formatting (-m) with link_names --"
-echo "Message formatting: Link names \@channel, \#channel, https://www.google.com/" | $SLACKTEE '-m' 'link_names'
+echo "Message formatting: Link names @channel, #channel, https://www.google.com/" | $SLACKTEE '-m' 'link_names'
 echo "-- Message formatting (--message-formatting) with full --"
-echo "Message formatting: Full \@channel, \#$CHANNEL, https://www.google.com/" | $SLACKTEE '-m' 'full'
+echo "Message formatting: Full @channel, #$CHANNEL, https://www.google.com/" | $SLACKTEE '-m' 'full'
 echo "-- Message formatting (-m) with none --"
-echo "Message formatting: None \@channel, \#CHANNEL, https://www.google.com/" | $SLACKTEE '-m' 'none'
+echo "Message formatting: None @channel, #CHANNEL, https://www.google.com/" | $SLACKTEE '-m' 'none'
 
 # Test 11: Plain text
 echo "-- Plain text (-p) --"
@@ -94,7 +95,7 @@ echo "Attachment: No color specified" | $SLACKTEE '-a'
 echo "-- Attachment (--attachment) with 'good' --"
 echo "Attachment: Good" | $SLACKTEE '-a' 'good'
 echo "-- Attachment (--attachment) with color code --"
-echo "Attachment: \#FF0099" | $SLACKTEE '-a' '#FF0099'
+echo "Attachment: #FF0099" | $SLACKTEE '-a' '#FF0099'
 
 # Test 13: Attachment with fields
 echo "-- Attachment (-a) with long fiels (-e/--field) --"
@@ -144,6 +145,11 @@ echo "-- Check exit code : Success 0 --"
 echo "Check if the exit code is 0" | $SLACKTEE ; echo $?
 echo "-- Check exit code : Failure 1 --"
 echo "Check if the exit code is 1" | $SLACKTEE '-c' 'this-channel-does-not-exist' ; echo $?
+
+# Test 17: Escape special charactors
+echo '\\\\I\like\backslash\.\\\\' | $SLACKTEE '-t' 'Escape backslashes'
+echo '"I am a double quote", it said.' |  $SLACKTEE '-t' 'Escape double quote'
+echo "I'm a single quote." |  $SLACKTEE '-t' 'Escape single quote'
 
 echo "Test is done!"
 
