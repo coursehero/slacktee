@@ -242,6 +242,35 @@ function setup()
 		err_exit 1 "\$HOME is not defined. Please set it first."
 	fi
 
+        if [[ -z $(command -v curl) ]]; then
+            read -p "curl is not installed, do you want to install it? [y/n] :" choice
+                case "$choice" in
+                        y|Y )
+                                if [[ ! -z $(command -v dnf) ]]; then
+                                    dnf -y install curl > /dev/null 2>&1
+                                    result=$?
+                                elif [[ ! -z $(command -v yum) ]]; then
+                                    yum -y install curl > /dev/null 2>&1
+                                    result=$?
+                                elif [[ ! -z $(command -v apt-get) ]]; then
+                                    apt-get -y install curl > /dev/null 2>&1
+                                    result=$?
+                                elif [[ ! -z $(command -v pacman) ]]; then
+                                    pacman --noconfirm --sync curl > /dev/null 2>&1
+                                    result=$?
+                                else
+                                    err_exit 1 "Don't know how to install curl, please install it first."
+                                fi
+                                if [[ "$result" == "0" ]]; then
+                                    echo "curl successfully installed."
+                                fi
+                                ;;
+                        * )
+                                err_exit 0 "Aborting" # Abort
+                                ;;
+                esac
+        fi
+
 	local_conf="$HOME/.slacktee"
 
 	if [[ -e "$local_conf" ]]; then
