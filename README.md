@@ -23,7 +23,7 @@ bash ./slacktee/install.sh
 
 install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. 
 
-If you'd like to install it in the different directory such as `/usr/bin`, pass the target directory as a parameter of install.sh. 
+If you'd like to install it in the different directory such as `/usr/bin`, pass the target directory as a parameter of install.sh. For a detailled information about how to configue the path or the name please check `./install.sh --help`
 By default, `/usr/local/bin` may not be included in your `$PATH` environment variable (you should be aware of this when you use *slacktee* in *crontab*). So, if you would like to use *slacktee* without specifying its full path, coping it to `/usr/bin` may be a good idea.
 
 ```
