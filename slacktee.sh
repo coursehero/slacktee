@@ -570,6 +570,10 @@ function setup_environment()
 # ----------
 function check_configuration() 
 {
+	if [[ -z $(command -v curl) ]]; then
+		err_exit 1 "curl is not installed. Please install it first."
+	fi
+
 	if [[ $webhook_url == "" ]]; then
 		err_exit 1 "Please setup the webhook url of this incoming webhook integration."
 	fi
