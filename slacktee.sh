@@ -46,7 +46,7 @@ function err_exit()
 {
 	exit_code=$1
 	shift
-	echo "$@" > /dev/null >&2
+	echo "$me: $@" > /dev/null >&2
 	exit $exit_code
 }
 
