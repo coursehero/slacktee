@@ -30,6 +30,14 @@ By default, `/usr/local/bin` may not be included in your `$PATH` environment var
 # Install slacktee.sh in /usr/bin
 bash ./slacktee/install.sh /usr/bin
 ```
+
+Also, you can rename slacktee.sh during the installation. If you would like to give a different name to slacktee.sh, simply append it to the target directory.
+
+```
+# Install slacktee.sh in /usr/local/bin as 'slacktee'
+bash ./slacktee/install.sh /usr/local/bin/slacktee
+```
+
 After the installation, interactive setup starts automatically.
 
 Configuration
