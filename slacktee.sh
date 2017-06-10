@@ -263,6 +263,8 @@ function setup()
                                 fi
                                 if [[ "$result" == "0" ]]; then
                                     echo "curl successfully installed."
+                                else
+                                    err_exit 1 "curl failed to install, exit code was \"$result\". Please install it first."
                                 fi
                                 ;;
                         * )
