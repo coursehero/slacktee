@@ -163,10 +163,12 @@ function send_message()
 
 		icon_url=""
 		icon_emoji=""
-		if echo "$icon" | grep -q "^https\?://.*"; then
-			icon_url="$icon"
-		else
-			icon_emoji=":$icon:"
+		if [ ! -z $icon ]; then
+			if echo "$icon" | grep -q "^https\?://.*"; then
+				icon_url="$icon"
+			else
+				icon_emoji=":$icon:"
+			fi
 		fi
 
 		username=$(escape_string "$username")
