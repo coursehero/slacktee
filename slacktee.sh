@@ -250,7 +250,14 @@ function process_line()
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
-			text="$text\n$line"
+			# See https://api.slack.com/rtm#limits for details on character limits
+			local message="$text\n$line"
+			if [[ ${#message} -ge 4000 ]]; then
+				send_message "$text"
+				text="$line"
+			else
+				text="$text\n$line"
+			fi
 		fi  
 	fi  
 }
