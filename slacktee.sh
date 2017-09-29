@@ -208,7 +208,7 @@ function send_message()
 function process_line()
 {
 
-    # do not print message / line if -n 
+    # do not print message / line if -q 
 	if [ "$no_output" == "" ] ;  then  echo "$1"  ;fi
 
 	# Escape special characters.
