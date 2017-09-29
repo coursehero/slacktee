@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+# https://github.com/course-hero/slacktee
 # ------------------------------------------------------------
 # Copyright 2017 Course Hero, Inc.
 # 
@@ -205,7 +207,9 @@ function send_message()
 
 function process_line()
 {
-	echo "$1"
+
+    # do not print message / line if -n 
+	if [ "$no_output" == "" ] ;  then  echo "$1"  ;fi
 
 	# Escape special characters.
 	line=$(escape_string "$1")
@@ -400,6 +404,9 @@ function parse_args()
 				title="$1"
 				shift
 				;;
+            -q|--no-output)
+                no_output=1
+                ;;
 			-d|--cond-prefix)
 				case "$1" in
 					-*|'')
