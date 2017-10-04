@@ -151,6 +151,13 @@ echo '\\\\I\like\backslash\.\\\\' | $SLACKTEE '-t' 'Escape backslashes'
 echo '"I am a double quote", it said.' |  $SLACKTEE '-t' 'Escape double quote'
 echo "I'm a single quote." |  $SLACKTEE '-t' 'Escape single quote'
 
+# Test 18: Suppress the output
+echo "-- Suppress the standard output (-q) --"
+cat $DATA | $SLACKTEE '-q' '-t' 'Suppress the standard output (-q)'
+
+echo "-- Suppress the standard output (--no-output) --"
+cat $DATA | $SLACKTEE '--no-output' '-t' 'Suppress the standard output (--no-output)'
+
 echo "Test is done!"
 
 
