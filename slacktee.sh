@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+# https://github.com/course-hero/slacktee
 # ------------------------------------------------------------
 # Copyright 2017 Course Hero, Inc.
 # 
@@ -96,11 +98,12 @@ options:
     -e, --field title value           Add a field to the attachment. You can specify this multiple times.
     -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times.
     -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern matches the input.
-                                      You can specify this multile times.
+                                      You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
     -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input.
-                                      You can specify this multile times.
+                                      You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
+    -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
 EOF
@@ -205,7 +208,11 @@ function send_message()
 
 function process_line()
 {
-	echo "$1"
+
+	# do not print message / line if -q option is specified
+	if [[ "$no_output" == "" ]]; then
+		echo "$1"
+	fi
 
 	# Escape special characters.
 	line=$(escape_string "$1")
@@ -250,7 +257,14 @@ function process_line()
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
-			text="$text\n$line"
+			# See https://api.slack.com/rtm#limits for details on character limits
+			local message="$text\n$line"
+			if [[ ${#message} -ge 4000 ]]; then
+				send_message "$text"
+				text="$line"
+			else
+				text="$text\n$line"
+			fi
 		fi  
 	fi  
 }
@@ -393,6 +407,9 @@ function parse_args()
 				title="$1"
 				shift
 				;;
+			-q|--no-output)
+				no_output=1
+		                ;;
 			-d|--cond-prefix)
 				case "$1" in
 					-*|'')

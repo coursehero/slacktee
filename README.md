@@ -89,6 +89,7 @@ usage: slacktee.sh [options]
     -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input.
                                       You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
+    -q, --no-output                   Don't echo the input.  
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
 ```
