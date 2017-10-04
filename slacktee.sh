@@ -98,10 +98,10 @@ options:
     -e, --field title value           Add a field to the attachment. You can specify this multiple times.
     -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times.
     -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern matches the input.
-                                      You can specify this multile times.
+                                      You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
     -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input.
-                                      You can specify this multile times.
+                                      You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
     -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
