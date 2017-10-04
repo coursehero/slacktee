@@ -208,8 +208,10 @@ function send_message()
 function process_line()
 {
 
-    # do not print message / line if -q 
-	if [ "$no_output" == "" ] ;  then  echo "$1"  ;fi
+	# do not print message / line if -q option is specified
+	if [[ "$no_output" == "" ]]; then
+		echo "$1"
+	fi
 
 	# Escape special characters.
 	line=$(escape_string "$1")
@@ -404,9 +406,9 @@ function parse_args()
 				title="$1"
 				shift
 				;;
-            -q|--no-output)
-                no_output=1
-                ;;
+			-q|--no-output)
+				no_output=1
+		                ;;
 			-d|--cond-prefix)
 				case "$1" in
 					-*|'')
