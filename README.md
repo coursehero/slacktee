@@ -13,6 +13,21 @@ Requirements
 Installation
 ------------
 
+For Debian based systems
+```
+# Clone git repository
+git clone https://github.com/course-hero/slacktee.git
+
+# Using debian package
+dpkg -i slacktee*.deb
+
+# Setting up
+slacktee --setup
+
+# Done
+```
+
+For other users
 ```
 # Clone git repository
 git clone https://github.com/course-hero/slacktee.git

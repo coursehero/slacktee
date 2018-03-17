@@ -1,0 +1,14 @@
+Source: slacktee
+Section: unknown
+Priority: optional
+Maintainer: Vaibhav Thakkar <vaibhav.thakkar.22.12.99@gmail.com>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.9.6
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://anonscm.debian.org/collab-maint/slacktee.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/slacktee.git
+
+Package: slacktee
+Architecture: all
+Depends: curl
+Description: slacktee is a command line tool that works like tee command. Instead of writing the standard input to files, slacktee posts it to Slack.
