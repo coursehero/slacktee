@@ -40,6 +40,11 @@ bash ./slacktee/install.sh /usr/local/bin/slacktee
 
 After the installation, interactive setup starts automatically.
 
+### Packages ###
+We started creating a package for major platforms. Contributions are always welcome!
+
+* [Debian Package](https://github.com/course-hero/slacktee-debian)
+
 Configuration
 ------------
 
