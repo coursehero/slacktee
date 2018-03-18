@@ -1,0 +1,10 @@
+Package: slacktee
+Version: 0.1-1
+Architecture: all
+Maintainer: Vaibhav Thakkar <vaibhav.thakkar.22.12.99@gmail.com>
+Installed-Size: 35
+Depends: curl
+Section: unknown
+Priority: optional
+Homepage: <insert the upstream URL, if relevant>
+Description: slacktee is a command line tool that works like tee command. Instead of writing the standard input to files, slacktee posts it to Slack.
