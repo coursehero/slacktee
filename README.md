@@ -41,9 +41,11 @@ bash ./slacktee/install.sh /usr/local/bin/slacktee
 After the installation, interactive setup starts automatically.
 
 ### Packages ###
-We started creating a package for major platforms. Contributions are always welcome!
+Packages are also availalbe for some platforms:
 
-* [Debian Package](https://github.com/course-hero/slacktee-debian)
+- [CentOS 7](https://centos.pkgs.org/7/atomic-x86_64/slacktee-1.2.11-1.el7.art.x86_64.rpm.html) (This package is maintained by [Atomicorp](https://updates.atomicorp.com/channels/atomic/))
+
+* [Debian](https://github.com/course-hero/slacktee-debian) 
 
 Configuration
 ------------
