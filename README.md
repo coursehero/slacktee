@@ -43,9 +43,20 @@ After the installation, interactive setup starts automatically.
 ### Packages ###
 Packages are also availalbe for some platforms:
 
-- [CentOS 7](https://centos.pkgs.org/7/atomic-x86_64/slacktee-1.2.11-1.el7.art.x86_64.rpm.html) (This package is maintained by [Atomicorp](https://updates.atomicorp.com/channels/atomic/))
+Scott R. Shinn at [Atomicorp](https://atomicorp.com/) created a package of `slacktee` for following Linux distributions:
+- Centos 6/7
+- RHEL 6/7
+- Amazon Linux 1/2(LTS)
+- Debian 8/9/14/16
 
-* [Debian](https://github.com/course-hero/slacktee-debian) 
+These packages are maintained by Atomicorp and their repo can be easily installed to your system through their automated repo installer as following:
+```
+wget -q -O - https://updates.atomicorp.com/installers/atomic | bash
+```
+If you would prefer to download and install the package by yourself, you can find it in [their repository page](https://updates.atomicorp.com/channels/atomic/). 
+
+It's still alpha version, but we also have a debian package in this github repo.
+* [slacktee-debian](https://github.com/course-hero/slacktee-debian) 
 
 Configuration
 ------------
