@@ -47,7 +47,8 @@ Scott R. Shinn at [Atomicorp](https://atomicorp.com/) created a package of `slac
 - Centos 6/7
 - RHEL 6/7
 - Amazon Linux 1/2(LTS)
-- Debian 8/9/14/16
+- Debian 8/9
+- Ubuntu 14/16
 
 These packages are maintained by Atomicorp and their repo can be easily installed to your system through their automated repo installer as following:
 ```
