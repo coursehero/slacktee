@@ -281,22 +281,13 @@ function process_line()
 				send_message "$text"
 				text="$line"
 			else
-				if [[ $textWrapper == "\`\`\`" ]]; then
-					text="$text\n$line"
-				else
-					text=$(printf '%s\n%s' "$text" "$line")
-				fi
+				text=$(printf '%s\n%s' "$text" "$line")
 			fi
 		fi
 	elif [[ $mode == "streaming" ]]; then
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
-			# if [[ $textWrapper == "\`\`\`" ]]; then
-			# 	text="$text\n$line"
-			# else
-			# 	text=$(printf '%s\n%s' "$text" "$line")
-			# fi
 			text=$(printf '%s\n%s' "$text" "$line")
 		fi
 
