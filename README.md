@@ -70,7 +70,7 @@ For more details about tokens, visit [Slack's API page](https://api.slack.com/).
 
 ```
 webhook_url=""      # Incoming Webhooks integration URL. See https://my.slack.com/services/new/incoming-webhook
-upload_token=""     # The user's API authentication token, only used for file uploads. See https://api.slack.com/#auth
+token=""            # The user's API authentication token, only used for file uploads and streaming. See https://api.slack.com/#auth
 channel=""          # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
@@ -87,6 +87,7 @@ usage: slacktee.sh [options]
   options:
     -h, --help                        Show this help.
     -n, --no-buffering                Post input values without buffering.
+    --streaming                       Post input as it comes in, and update one comment with further input.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
     -c, --channel channel_name        Post input values to specified channel or user.
@@ -182,7 +183,7 @@ plaintext values inside your slacktee.conf file.
 
 Instead, use the [encrypt command](https://github.com/travis-ci/travis.rb#encrypt)
 of the Travis client to set the SLACKTEE\_WEBHOOK and SLACKTEE\_TOKEN
-environment variables, and leave the *webhook_url* and *upload_token* values
+environment variables, and leave the *webhook_url* and *token* values
 in your slacktee.conf empty. When *slacktee* runs, it will give priority to the
 environment variables, which Travis-CI will decrypt and set automatically during
 the build process. In this way those two values are kept secure.
@@ -192,7 +193,7 @@ the build process. In this way those two values are kept secure.
 Modify slacktee.conf
 ```
 webhook_url=""
-upload_token=""
+token=""
 channel="Travis-CI"
 tmp_dir="/tmp"
 username="slacktee"

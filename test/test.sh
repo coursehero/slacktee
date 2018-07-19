@@ -158,6 +158,13 @@ cat $DATA | $SLACKTEE '-q' '-t' 'Suppress the standard output (-q)'
 echo "-- Suppress the standard output (--no-output) --"
 cat $DATA | $SLACKTEE '--no-output' '-t' 'Suppress the standard output (--no-output)'
 
+# Test 19: Streaming output to single comment
+{
+  echo "let's count to 5"
+  for i in {1..5}; do
+    echo $i
+    sleep 1
+  done
+} | $SLACKTEE --streaming
+
 echo "Test is done!"
-
-
