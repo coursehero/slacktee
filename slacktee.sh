@@ -196,31 +196,31 @@ function send_message()
 			if [[ -z "$streaming_ts" ]]; then
 				post_result=$(curl -d "token=$token&username=$username&icon_url=$icon_url&icon_emoji=$icon_emoji&$parseModeUrlEncoded&channel=$channel&text=$wrapped_message" -X POST https://slack.com/api/chat.postMessage 2> /dev/null)
 				if [ $? != 0 ]; then
-			    err_exit 1 "$post_result"
+					err_exit 1 "$post_result"
 				fi
 
 				# chat.update requires the channel id, not the name
-				streaming_channel_id=$(echo "$post_result" | python -c "import sys, json; print json.load(sys.stdin)['channel']")
+				streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
 				
 				# timestamp is used as the message id
-				streaming_ts=$(echo "$post_result" | python -c "import sys, json; print json.load(sys.stdin)['ts']")
+				streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
 			else
 				post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
 				if [ $? != 0 ]; then
-			    err_exit 1 "$post_result"
+					err_exit 1 "$post_result"
 				fi
 			fi
 		else
 			json="{\
-	                  \"channel\": \"$channel\", \
-	                  \"username\": \"$username\", \
-	                  $message_attr \"icon_emoji\": \"$icon_emoji\", \
-	                  \"icon_url\": \"$icon_url\" $parseMode}"
+				\"channel\": \"$channel\", \
+				\"username\": \"$username\", \
+				$message_attr \"icon_emoji\": \"$icon_emoji\", \
+				\"icon_url\": \"$icon_url\" $parseMode}"
 			post_result=$(curl -X POST --data-urlencode \
-	                  "payload=$json" "$webhook_url" 2> /dev/null)
-	                if [[ $post_result != "ok" ]]; then
-	                	err_exit 1 "$post_result"
-	                fi
+										"payload=$json" "$webhook_url" 2> /dev/null)
+			if [[ $post_result != "ok" ]]; then
+				err_exit 1 "$post_result"
+			fi
 		fi
 	fi
 }
