@@ -123,7 +123,7 @@ function send_message()
 		found_pattern_prefix=""
 	fi
 
-	wrapped_message=$(printf '%s\n%s\n%s' "$textWrapper" "$message" "$textWrapper")
+	wrapped_message=$(echo "$textWrapper\n$message\n$textWrapper")
 	message_attr=""
 	if [[ $message != "" ]]; then
 		if [[ -n $attachment ]]; then
@@ -196,7 +196,14 @@ function send_message()
 
 		if [[ $mode == "streaming" ]]; then
 			if [[ -z "$streaming_ts" ]]; then
-				post_result=$(curl -d "token=$token&username=$username&icon_url=$icon_url&icon_emoji=$icon_emoji&$parseModeUrlEncoded&channel=$channel&text=$wrapped_message" -X POST https://slack.com/api/chat.postMessage 2> /dev/null)
+				json="{\
+					\"channel\": \"$channel\", \
+					\"username\": \"$username\", \
+					$message_attr \"icon_emoji\": \"$icon_emoji\", \
+					\"icon_url\": \"$icon_url\" $parseMode}"
+
+				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
+				# post_result=$(curl -d "token=$token&username=$username&icon_url=$icon_url&icon_emoji=$icon_emoji&$parseModeUrlEncoded&channel=$channel&text=$wrapped_message" -X POST https://slack.com/api/chat.postMessage 2> /dev/null)
 				if [ $? != 0 ]; then
 					err_exit 1 "$post_result"
 				fi
@@ -211,7 +218,14 @@ function send_message()
 				now=$(date '+%s')
 				if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
 					streaming_last_update="$now"
-					post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
+					json="{\
+						\"channel\": \"$streaming_channel_id\", \
+						\"ts\": \"$streaming_ts\", \
+						$message_attr \"icon_emoji\": \"$icon_emoji\", \
+						$parseMode}"
+
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+					# post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
 					if [ $? != 0 ]; then
 						err_exit 1 "$post_result"
 					fi
@@ -288,14 +302,14 @@ function process_line()
 				send_message "$text"
 				text="$line"
 			else
-				text=$(printf '%s\n%s' "$text" "$line")
+				text=$(echo "$text\n$line")
 			fi
 		fi
 	elif [[ $mode == "streaming" ]]; then
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
-			text=$(printf '%s\n%s' "$text" "$line")
+			text=$(echo "$text\n$line")
 		fi
 
 		send_message "$text"
