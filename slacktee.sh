@@ -36,6 +36,7 @@ attachment=""        # Default color of the attachments. If an empty string is s
 me=$(basename "$0")
 title=""
 mode="buffering"
+streaming_batch_time=1
 link=""
 textWrapper="\`\`\`"
 parseMode=""
@@ -83,6 +84,7 @@ options:
     -h, --help                        Show this help.
     -n, --no-buffering                Post input values without buffering.
     --streaming                       Post input as it comes in, and update one comment with further input.
+    --streaming-batch-time n          Only update streaming slack output every n seconds. Defaults to 1.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
     -c, --channel channel_name        Post input values to specified channel or user.
@@ -205,9 +207,14 @@ function send_message()
 				# timestamp is used as the message id
 				streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
 			else
-				post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
-				if [ $? != 0 ]; then
-					err_exit 1 "$post_result"
+				# batch updates every $streaming_batch_time seconds
+				now=$(date '+%s')
+				if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
+					streaming_last_update="$now"
+					post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
+					if [ $? != 0 ]; then
+						err_exit 1 "$post_result"
+					fi
 				fi
 			fi
 		else
@@ -414,6 +421,10 @@ function parse_args()
 				;;
 			--streaming)
 				mode="streaming"
+				;;
+			--streaming-batch-time)
+				streaming_batch_time="$1"
+				shift
 				;;
 			-f|--file)
 				mode="file"
@@ -738,6 +749,9 @@ function main()
 	fi
 
 	if [[ "$mode" == "buffering" ]]; then
+		send_message "$text"
+	elif [[ "$mode" == "streaming" ]]; then
+		unset streaming_last_update
 		send_message "$text"
 	elif [[ "$mode" == "file" ]]; then
 		if [[ -s "$filename" ]]; then

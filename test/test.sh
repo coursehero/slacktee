@@ -167,4 +167,23 @@ cat $DATA | $SLACKTEE '--no-output' '-t' 'Suppress the standard output (--no-out
   done
 } | $SLACKTEE --streaming
 
+# Test 20: Streaming batches updates
+{
+  echo "let's count to 20, quickly!"
+  for i in {1..20}; do
+    echo $i
+    sleep 0.1
+  done
+} | $SLACKTEE --streaming
+
+# Test 21: streaming-batch-time
+{
+  echo "The answer to life, the universe, and everything is"
+  for i in {1..20}; do
+    echo '.'
+    sleep 0.3
+  done
+  echo 42
+} | $SLACKTEE --streaming --streaming-batch-time 2
+
 echo "Test is done!"
