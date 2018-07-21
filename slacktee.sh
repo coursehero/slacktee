@@ -203,7 +203,6 @@ function send_message()
 					\"icon_url\": \"$icon_url\" $parseMode}"
 
 				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-				# post_result=$(curl -d "token=$token&username=$username&icon_url=$icon_url&icon_emoji=$icon_emoji&$parseModeUrlEncoded&channel=$channel&text=$wrapped_message" -X POST https://slack.com/api/chat.postMessage 2> /dev/null)
 				if [ $? != 0 ]; then
 					err_exit 1 "$post_result"
 				fi
@@ -225,7 +224,6 @@ function send_message()
 						$parseMode}"
 
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
-					# post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
 					if [ $? != 0 ]; then
 						err_exit 1 "$post_result"
 					fi
