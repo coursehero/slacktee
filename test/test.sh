@@ -167,4 +167,39 @@ cat $DATA | $SLACKTEE '--no-output' '-t' 'Suppress the standard output (--no-out
   done
 } | $SLACKTEE --streaming
 
+# Test 20: Streaming batches updates
+{
+  echo "let's count to 20, quickly!"
+  for i in {1..20}; do
+    echo $i
+    sleep 0.1
+  done
+} | $SLACKTEE --streaming
+
+# Test 21: streaming-batch-time
+{
+  echo "The answer to life, the universe, and everything is"
+  for i in {1..20}; do
+    echo '.'
+    sleep 0.3
+  done
+  echo 42
+} | $SLACKTEE --streaming --streaming-batch-time 2
+
+# Test 22: Streaming mode - test payload is properly escaped
+echo "hello ampersand &, equals =, quote ', and double quote \", please don't break my payload." | $SLACKTEE --streaming --streaming-batch-time 2
+
+# Test 23: Newlines show correctly
+echo -e "--streaming line one\n\nline three" | $SLACKTEE --streaming
+echo -e "--streaming -p line one\n\nline three" | $SLACKTEE --streaming -p
+echo -e "line one\n\nline three" | $SLACKTEE
+echo -e "-p line one\n\nline three" | $SLACKTEE -p
+
+# Test 24: Long messages
+long_message=$(printf '.%.0s' {1..5000})
+echo $long_message | $SLACKTEE -p # should be split up over two messages
+# these do not work correctly. Fixing seems complicated, and it's an edge case, so let's just document it here
+# echo $long_message | $SLACKTEE --streaming
+# echo $long_message | $SLACKTEE
+
 echo "Test is done!"

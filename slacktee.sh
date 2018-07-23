@@ -36,6 +36,7 @@ attachment=""        # Default color of the attachments. If an empty string is s
 me=$(basename "$0")
 title=""
 mode="buffering"
+streaming_batch_time=1
 link=""
 textWrapper="\`\`\`"
 parseMode=""
@@ -83,6 +84,7 @@ options:
     -h, --help                        Show this help.
     -n, --no-buffering                Post input values without buffering.
     --streaming                       Post input as it comes in, and update one comment with further input.
+    --streaming-batch-time n          Only update streaming slack output every n seconds. Defaults to 1.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
     -c, --channel channel_name        Post input values to specified channel or user.
@@ -121,7 +123,7 @@ function send_message()
 		found_pattern_prefix=""
 	fi
 
-	wrapped_message=$(printf '%s\n%s\n%s' "$textWrapper" "$message" "$textWrapper")
+	wrapped_message=$(echo "$textWrapper\n$message\n$textWrapper")
 	message_attr=""
 	if [[ $message != "" ]]; then
 		if [[ -n $attachment ]]; then
@@ -194,7 +196,13 @@ function send_message()
 
 		if [[ $mode == "streaming" ]]; then
 			if [[ -z "$streaming_ts" ]]; then
-				post_result=$(curl -d "token=$token&username=$username&icon_url=$icon_url&icon_emoji=$icon_emoji&$parseModeUrlEncoded&channel=$channel&text=$wrapped_message" -X POST https://slack.com/api/chat.postMessage 2> /dev/null)
+				json="{\
+					\"channel\": \"$channel\", \
+					\"username\": \"$username\", \
+					$message_attr \"icon_emoji\": \"$icon_emoji\", \
+					\"icon_url\": \"$icon_url\" $parseMode}"
+
+				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
 				if [ $? != 0 ]; then
 					err_exit 1 "$post_result"
 				fi
@@ -205,9 +213,20 @@ function send_message()
 				# timestamp is used as the message id
 				streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
 			else
-				post_result=$(curl -d "token=$token&channel=$streaming_channel_id&ts=$streaming_ts&text=$wrapped_message" -X POST https://slack.com/api/chat.update 2> /dev/null)
-				if [ $? != 0 ]; then
-					err_exit 1 "$post_result"
+				# batch updates every $streaming_batch_time seconds
+				now=$(date '+%s')
+				if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
+					streaming_last_update="$now"
+					json="{\
+						\"channel\": \"$streaming_channel_id\", \
+						\"ts\": \"$streaming_ts\", \
+						$message_attr \"icon_emoji\": \"$icon_emoji\", \
+						$parseMode}"
+
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+					if [ $? != 0 ]; then
+						err_exit 1 "$post_result"
+					fi
 				fi
 			fi
 		else
@@ -281,14 +300,14 @@ function process_line()
 				send_message "$text"
 				text="$line"
 			else
-				text=$(printf '%s\n%s' "$text" "$line")
+				text=$(echo "$text\n$line")
 			fi
 		fi
 	elif [[ $mode == "streaming" ]]; then
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
-			text=$(printf '%s\n%s' "$text" "$line")
+			text=$(echo "$text\n$line")
 		fi
 
 		send_message "$text"
@@ -414,6 +433,10 @@ function parse_args()
 				;;
 			--streaming)
 				mode="streaming"
+				;;
+			--streaming-batch-time)
+				streaming_batch_time="$1"
+				shift
 				;;
 			-f|--file)
 				mode="file"
@@ -738,6 +761,9 @@ function main()
 	fi
 
 	if [[ "$mode" == "buffering" ]]; then
+		send_message "$text"
+	elif [[ "$mode" == "streaming" ]]; then
+		unset streaming_last_update
 		send_message "$text"
 	elif [[ "$mode" == "file" ]]; then
 		if [[ -s "$filename" ]]; then
