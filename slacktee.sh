@@ -411,7 +411,7 @@ function setup()
 	username="$input_username"
 	icon="$input_icon"
 	attachment="$input_attachment"
-	EOF
+EOF
 }
 
 # ----------
