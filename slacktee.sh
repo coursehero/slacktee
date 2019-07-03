@@ -703,6 +703,11 @@ function check_configuration()
 		icon=${icon#:} # remove leading ':'
 		icon=${icon%:} # remove trailing ':'
 	fi
+
+	# Show deprecation warning
+	if [[ $webhook_url != "" ]]; then
+	    echo "$me: webhook_url is deprecated but still set. Recommend to remove it and use token instead." > /dev/null >&2
+	fi
 }
 
 # ----------
