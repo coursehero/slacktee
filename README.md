@@ -66,10 +66,14 @@ Before start using *slacktee*, please set following variables in the script conf
 *slacktee* reads the global configuration (/etc/slacktee.conf) first, then reads your local configuration (~/.slacktee).
 You can set up your local configuration file using interactive setup mode (--setup option).
 
-In order to retrieve the bot token, you need to add a bot into your workspace through [Slack App Directory](https://cks-world.slack.com/apps/A0F7YS25R-bots).
-Once you add a bot, you can find 'API Token' in the configuration page of the bot.
+You would need an authentication token for `slacktee`. It could be generated in 2 ways:
 
-Most proper way to generate the bot token is [creating a Slack App](https://api.slack.com/slack-apps#creating_apps), but it's a little bit more complicated than adding a bot. If you go this path, give three [permission scopes](https://api.slack.com/docs/oauth-scopes)  `chat:write:bot`, `files:write:user` and `bot` to your app. Also, don't forget to create a bot user for your app. 
+1. Crate a Slack App (Preffered by Slack, but a bit complicated to setup)  
+Follow steps listed in [creating a Slack App](https://api.slack.com/slack-apps#creating_apps).  
+Next, create a bot user for your app, give the following 3 permissions to your app: `chat:write:bot`, `files:write:user` and `bot`. More information about the permission scopes can be found at [permission scopes](https://api.slack.com/docs/oauth-scopes).  
+At last, install the app to your workplace and get the token in 'OAuth & Permission' feature in the manage application page.
+2. Add a bot (Easy to setup, but Slack may remove it in future)  
+Add a bot into your workspace through [Slack App Directory](https://cks-world.slack.com/apps/A0F7YS25R-bots). You can now find 'API Token' in the configuration page of the bot.
 
 ```
 token=""            # The authentication token of the bot user. Used for accessing Slack APIs.
