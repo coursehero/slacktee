@@ -66,11 +66,13 @@ Before start using *slacktee*, please set following variables in the script conf
 *slacktee* reads the global configuration (/etc/slacktee.conf) first, then reads your local configuration (~/.slacktee).
 You can set up your local configuration file using interactive setup mode (--setup option).
 
-For more details about tokens, visit [Slack's API page](https://api.slack.com/).
+In order to retrieve the bot token, you need to add a bot into your workspace through [Slack App Directory](https://cks-world.slack.com/apps/A0F7YS25R-bots).
+Once you add a bot, you can find 'API Token' in the configuration page of the bot.
+
+Most proper way to generate the bot token is [creating a Slack App](https://api.slack.com/slack-apps#creating_apps), but it's a little bit more complicated than adding a bot. If you go this path, give three [permission scopes](https://api.slack.com/docs/oauth-scopes)  `chat:write:bot`, `files:write:user` and `bot` to your app. Also, don't forget to create a bot user for your app. 
 
 ```
-webhook_url=""      # Incoming Webhooks integration URL. See https://my.slack.com/services/new/incoming-webhook
-token=""            # The user's API authentication token, only used for file uploads and streaming. See https://api.slack.com/#auth
+token=""            # The authentication token of the bot user. Used for accessing Slack APIs.
 channel=""          # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"      # Temporary file is created in this directory.
 username="slacktee" # Default username to post messages.
