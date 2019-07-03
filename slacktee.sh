@@ -682,7 +682,7 @@ function check_configuration()
 	fi
 
 	if [[ $webhook_url == "" && $token == "" ]]; then
-		err_exit 1 "Please setup the authentication token or the incoming webhook url."
+		err_exit 1 "Please setup the authentication token or the incoming webhook url (deprecated)."
 	fi
 
 	if [[ $token == "" && $mode == "file" ]]; then
