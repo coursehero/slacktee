@@ -22,8 +22,8 @@
 # ----------
 # Default Configuration
 # ----------
-webhook_url=""       # Incoming Webhooks integration URL
-token=""             # The user's API authentication token, only used for file uploads or streaming
+webhook_url=""       # Incoming Webhooks integration URL. Old way to interact with Slack. (Deprecated)
+token=""             # The authentication token of the bot user. Used for accessing Slack APIs.
 channel="general"    # Default channel to post messages. '#' is prepended, if it doesn't start with '#' or '@'.
 tmp_dir="/tmp"       # Temporary file is created in this directory.
 username="slacktee"  # Default username to post messages.
@@ -203,7 +203,8 @@ function send_message()
 					\"icon_url\": \"$icon_url\" $parseMode}"
 
 				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-				if [ $? != 0 ]; then
+				post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
+				if [ $post_ok != "true" ]; then
 					err_exit 1 "$post_result"
 				fi
 
@@ -224,7 +225,8 @@ function send_message()
 						$parseMode}"
 
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
-					if [ $? != 0 ]; then
+					post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
+					if [ $post_ok != "true" ]; then
 						err_exit 1 "$post_result"
 					fi
 				fi
@@ -235,10 +237,19 @@ function send_message()
 				\"username\": \"$username\", \
 				$message_attr \"icon_emoji\": \"$icon_emoji\", \
 				\"icon_url\": \"$icon_url\" $parseMode}"
-			post_result=$(curl -X POST --data-urlencode \
+			if [[ ! -z $webhook_url ]]; then
+			    # Prioritize the webhook_url for the backward compatibility
+			    post_result=$(curl -X POST --data-urlencode \
 										"payload=$json" "$webhook_url" 2> /dev/null)
-			if [[ $post_result != "ok" ]]; then
+			    if [[ $post_result != "ok" ]]; then
 				err_exit 1 "$post_result"
+			    fi
+			else
+			    post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
+			    post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
+			    if [ $post_ok != "true" ]; then
+				err_exit 1 "$post_result"
+			    fi
 			fi
 		fi
 	fi
@@ -372,10 +383,6 @@ function setup()
 	. $local_conf
 
 	# Start setup
-	read -p "Incoming Webhook URL [$webhook_url]: " input_webhook_url
-	if [[ -z "$input_webhook_url" ]]; then
-		input_webhook_url=$webhook_url
-	fi
 	read -p "Token [$token]: " input_token
 	if [[ -z "$input_token" ]]; then
 		input_token=$token
@@ -404,7 +411,7 @@ function setup()
 	fi
 
 	cat <<- EOF | sed 's/^[[:space:]]*//' > "$local_conf"
-	webhook_url="$input_webhook_url"
+	webhook_url="$webhook_url"
 	token="$input_token"
 	tmp_dir="$input_tmp_dir"
 	channel="$input_channel"
@@ -674,8 +681,8 @@ function check_configuration()
 		err_exit 1 "curl is not installed. Please install it first."
 	fi
 
-	if [[ $webhook_url == "" ]]; then
-		err_exit 1 "Please setup the webhook url of this incoming webhook integration."
+	if [[ $webhook_url == "" && $token == "" ]]; then
+		err_exit 1 "Please setup the authentication token or the incoming webhook url (deprecated)."
 	fi
 
 	if [[ $token == "" && $mode == "file" ]]; then
@@ -695,6 +702,11 @@ function check_configuration()
 	if [[ -n "$icon" ]]; then
 		icon=${icon#:} # remove leading ':'
 		icon=${icon%:} # remove trailing ':'
+	fi
+
+	# Show deprecation warning
+	if [[ $webhook_url != "" ]]; then
+	    echo "$me: webhook_url is deprecated but still set. Recommend to remove it and use token instead." > /dev/null >&2
 	fi
 }
 
