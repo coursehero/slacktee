@@ -62,12 +62,22 @@ function escape_string()
 	echo "$result"
 }
 
+function write_to_stderr()
+{
+    echo "$me: $@" > /dev/null >&2
+}
+
 function err_exit() 
 {
-	exit_code=$1
+	local code=$1
 	shift
-	echo "$me: $@" > /dev/null >&2
-	exit $exit_code
+	write_to_stderr $@
+	exit $code
+}
+
+function get_ok_in_response() {
+    local response=$1
+    echo "$(echo "$response" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
 }
 
 function cleanup() 
@@ -203,16 +213,16 @@ function send_message()
 					\"icon_url\": \"$icon_url\" $parseMode}"
 
 				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-				post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
-				if [ $post_ok != "true" ]; then
-					err_exit 1 "$post_result"
-				fi
-
-				# chat.update requires the channel id, not the name
-				streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+				if [ $(get_ok_in_response $post_result) != "true" ]; then
+				    write_to_stderr "$post_result"
+				    exit_code=1
+				else
+				    # chat.update requires the channel id, not the name
+				    streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
 				
-				# timestamp is used as the message id
-				streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+				    # timestamp is used as the message id
+				    streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+				fi
 			else
 				# batch updates every $streaming_batch_time seconds
 				now=$(date '+%s')
@@ -225,9 +235,9 @@ function send_message()
 						$parseMode}"
 
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
-					post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
-					if [ $post_ok != "true" ]; then
-						err_exit 1 "$post_result"
+					if [ $(get_ok_in_response $post_result) != "true" ]; then
+					        write_to_stderr "$post_result"
+						exit_code=1
 					fi
 				fi
 			fi
@@ -239,16 +249,16 @@ function send_message()
 				\"icon_url\": \"$icon_url\" $parseMode}"
 			if [[ ! -z $webhook_url ]]; then
 			    # Prioritize the webhook_url for the backward compatibility
-			    post_result=$(curl -X POST --data-urlencode \
-										"payload=$json" "$webhook_url" 2> /dev/null)
+			    post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
 			    if [[ $post_result != "ok" ]]; then
-				err_exit 1 "$post_result"
+				write_to_stderr "$post_result"
+				exit_code=1				
 			    fi
 			else
 			    post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-			    post_ok="$(echo "$post_result" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
-			    if [ $post_ok != "true" ]; then
-				err_exit 1 "$post_result"
+			    if [ $(get_ok_in_response $post_result) != "true" ]; then
+				write_to_stderr "$post_result"
+				exit_code=1
 			    fi
 			fi
 		fi
@@ -706,7 +716,7 @@ function check_configuration()
 
 	# Show deprecation warning
 	if [[ $webhook_url != "" ]]; then
-	    echo "$me: webhook_url is deprecated but still set. Recommend to remove it and use token instead." > /dev/null >&2
+	    write_to_stderr "webhook_url is deprecated but still set. Recommend to remove it and use token instead."
 	fi
 }
 
@@ -715,6 +725,8 @@ function check_configuration()
 # ----------
 function main() 
 {
+        exit_code=0
+    
 	parse_args "$@"
 	setup_environment
 	check_configuration
@@ -784,9 +796,12 @@ function main()
 				# Set channels for making the file public
 				channels_param="-F channels=$channel"
 			fi
-			result="$(curl -F file=@"$filename" -F token="$token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
-			access_url="$(echo "$result" | awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\//g')"
-			download_url="$(echo "$result" | awk 'match($0, /url_private_download":"([^"]*)"/) {print substr($0, RSTART+23, RLENGTH-24)}'|sed 's/\\//g')"
+			upload_result="$(curl -F file=@"$filename" -F token="$token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
+			if [ $(get_ok_in_response $upload_result) != "true" ]; then
+			    err_exit 1 $upload_result
+			fi
+			access_url="$(echo "$upload_result" | awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\//g')"
+			download_url="$(echo "$upload_result" | awk 'match($0, /url_private_download":"([^"]*)"/) {print substr($0, RSTART+23, RLENGTH-24)}'|sed 's/\\//g')"
 			if [[ -n "$attachment" ]]; then
 				text="Input file has been uploaded"
 			else
@@ -800,5 +815,6 @@ function main()
 		# Clean up the temp file
 		cleanup
 	fi
+	exit $exit_code
 }
 main "$@"
