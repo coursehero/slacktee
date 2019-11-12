@@ -325,6 +325,13 @@ function process_line()
 			fi
 		fi
 	elif [[ $mode == "streaming" ]]; then
+		# Keep the latest matched pattern and use it for sending message
+		# "$attachment" is the default value
+		if [[ -z $last_found_pattern_color || $found_pattern_color != "$attachment" ]]; then
+			last_found_pattern_color=$found_pattern_color
+		fi
+		found_pattern_color=$last_found_pattern_color
+		
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
@@ -787,8 +794,11 @@ function main()
 	if [[ "$mode" == "buffering" ]]; then
 		send_message "$text"
 	elif [[ "$mode" == "streaming" ]]; then
+		# Unset last updated time for flashing buffer
 		unset streaming_last_update
-		send_message "$text"
+		# Use the latest matched color
+		found_pattern_color=$last_found_pattern_color
+		send_message "$text"	    
 	elif [[ "$mode" == "file" ]]; then
 		if [[ -s "$filename" ]]; then
 			channels_param=""
