@@ -80,6 +80,12 @@ function get_ok_in_response() {
     echo "$(echo "$response" | awk 'match($0, /"ok":([^,}]+)/) {print substr($0, RSTART+5, RLENGTH-5)}')"
 }
 
+function handle_signal()
+{
+    cleanup
+    err_exit 130 "Aborting"
+}    
+
 function cleanup() 
 {
 	[[ -f $filename ]] && rm "$filename"
@@ -737,7 +743,7 @@ function main()
 	parse_args "$@"
 	setup_environment
 	check_configuration
-        trap cleanup SIGINT SIGTERM SIGKILL
+	trap handle_signal SIGINT SIGTERM SIGKILL
 
 	text=""
 	if [[ -n "$title" || -n "$link" ]]; then
