@@ -83,7 +83,7 @@ function get_ok_in_response() {
 function handle_signal()
 {
     cleanup
-    err_exit 130 "Aborting"
+    err_exit 1 "Aborting"
 }    
 
 function cleanup() 
