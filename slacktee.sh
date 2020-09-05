@@ -814,6 +814,7 @@ function main()
 			fi
 			upload_result="$(curl -F file=@"$filename" -F token="$token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
 			if [ $(get_ok_in_response $upload_result) != "true" ]; then
+			    write_to_stderr "Upload failed. Please make sure slacktee is a member of $channel."
 			    err_exit 1 $upload_result
 			fi
 			access_url="$(echo "$upload_result" | awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\//g')"
