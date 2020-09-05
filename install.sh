@@ -20,9 +20,25 @@
 install_path=/usr/local/bin
 slacktee_script="slacktee.sh"
 
+skip_setup=false
+
+# Parse options
 if [[ $# -ne 0 ]]; then
-    install_path=$1
+	while [[ $# -gt 0 ]]; do
+		opt="$1"
+		shift
+
+		case "$opt" in
+			-s|--skip-setup)
+				skip_setup=true
+				;;
+            *)
+                install_path=$opt
+                ;;
+        esac
+    done
 fi
+
 script_dir=$( cd $(dirname $0); pwd -P )
 
 # Copy slacktee.sh to /usr/local/bin 
@@ -46,5 +62,7 @@ chmod +x "$install_path/$slacktee_script"
 
 echo $message
 
-# Execute slacktee.sh with --setup option
-"$install_path/$slacktee_script" --setup
+if [[ $skip_setup = false ]]; then
+    # Execute slacktee.sh with --setup option
+    "$install_path/$slacktee_script" --setup
+fi
