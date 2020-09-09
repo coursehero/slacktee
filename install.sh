@@ -32,11 +32,11 @@ if [[ $# -ne 0 ]]; then
 			-s|--skip-setup)
 				skip_setup=true
 				;;
-            *)
-                install_path=$opt
-                ;;
-        esac
-    done
+			*)
+				install_path=$opt
+				;;
+		esac
+	done
 fi
 
 script_dir=$( cd $(dirname $0); pwd -P )
