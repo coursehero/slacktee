@@ -70,8 +70,9 @@ You would need an authentication token for `slacktee`. It could be generated in 
 
 1. Crate a Slack App (Preffered by Slack, but a bit complicated to setup)  
 Follow steps listed in [creating a Slack App](https://api.slack.com/slack-apps#creating_apps).  
-Next, create a bot user for your app, give the following 3 permissions to your app: `chat:write:bot`, `files:write:user` and `bot`. More information about the permission scopes can be found at [permission scopes](https://api.slack.com/docs/oauth-scopes).  
-At last, install the app to your workplace and get the token in 'OAuth & Permission' feature in the manage application page.
+Next, create a bot user for your app, give the following 3 permissions to the Bot Token Scopes of your app: `chat:write`, `chat:write:public`, `files:write`. More information about the permission scopes can be found at [permission scopes](https://api.slack.com/docs/oauth-scopes). 
+[Note] Even with `files:write` permission, Slack App can upload files only to the channels where the Slack App is in. So, please add your Slack App to the channels where you want to upload files. 
+At last, install the app to your workplace and get the Bot User OAuth token in the "OAuth & Permissions" section of the app management page.
 2. Add a bot (Easy to setup, but Slack may remove it in future)  
 Add a bot into your workspace through [Slack App Directory](https://cks-world.slack.com/apps/A0F7YS25R-bots). You can now find 'API Token' in the configuration page of the bot.
 
