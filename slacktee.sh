@@ -216,7 +216,6 @@ function send_message()
 		username=$(escape_string "$username")
 
 		for chan in $channel; do
-			echo "Send message to channel $chan"
 			if [[ $mode == "streaming" ]]; then
 				if [[ -z "$streaming_ts" ]]; then
 					json="{\
