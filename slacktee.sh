@@ -215,64 +215,67 @@ function send_message()
 
 		username=$(escape_string "$username")
 
-		if [[ $mode == "streaming" ]]; then
-			if [[ -z "$streaming_ts" ]]; then
+		for chan in $channel; do
+			echo "Send message to channel $chan"
+			if [[ $mode == "streaming" ]]; then
+				if [[ -z "$streaming_ts" ]]; then
+					json="{\
+						\"channel\": \"$chan\", \
+						\"username\": \"$username\", \
+						$message_attr \"icon_emoji\": \"$icon_emoji\", \
+						\"icon_url\": \"$icon_url\" $parseMode}"
+
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
+					if [ $(get_ok_in_response $post_result) != "true" ]; then
+						write_to_stderr "$post_result"
+						exit_code=1
+					else
+						# chat.update requires the channel id, not the name
+						streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+
+						# timestamp is used as the message id
+						streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+					fi
+				else
+					# batch updates every $streaming_batch_time seconds
+					now=$(date '+%s')
+					if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
+						streaming_last_update="$now"
+						json="{\
+							\"channel\": \"$streaming_channel_id\", \
+							\"ts\": \"$streaming_ts\", \
+							$message_attr \"icon_emoji\": \"$icon_emoji\", \
+							$parseMode}"
+
+						post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+						if [ $(get_ok_in_response $post_result) != "true" ]; then
+								write_to_stderr "$post_result"
+							exit_code=1
+						fi
+					fi
+				fi
+			else
 				json="{\
-					\"channel\": \"$channel\", \
+					\"channel\": \"$chan\", \
 					\"username\": \"$username\", \
 					$message_attr \"icon_emoji\": \"$icon_emoji\", \
 					\"icon_url\": \"$icon_url\" $parseMode}"
-
-				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-				if [ $(get_ok_in_response $post_result) != "true" ]; then
-				    write_to_stderr "$post_result"
-				    exit_code=1
+				if [[ ! -z $webhook_url ]]; then
+					# Prioritize the webhook_url for the backward compatibility
+					post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
+					if [[ $post_result != "ok" ]]; then
+					write_to_stderr "$post_result"
+					exit_code=1
+					fi
 				else
-				    # chat.update requires the channel id, not the name
-				    streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
-
-				    # timestamp is used as the message id
-				    streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
-				fi
-			else
-				# batch updates every $streaming_batch_time seconds
-				now=$(date '+%s')
-				if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
-					streaming_last_update="$now"
-					json="{\
-						\"channel\": \"$streaming_channel_id\", \
-						\"ts\": \"$streaming_ts\", \
-						$message_attr \"icon_emoji\": \"$icon_emoji\", \
-						$parseMode}"
-
-					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
 					if [ $(get_ok_in_response $post_result) != "true" ]; then
-					        write_to_stderr "$post_result"
-						exit_code=1
+					write_to_stderr "$post_result"
+					exit_code=1
 					fi
 				fi
 			fi
-		else
-			json="{\
-				\"channel\": \"$channel\", \
-				\"username\": \"$username\", \
-				$message_attr \"icon_emoji\": \"$icon_emoji\", \
-				\"icon_url\": \"$icon_url\" $parseMode}"
-			if [[ ! -z $webhook_url ]]; then
-			    # Prioritize the webhook_url for the backward compatibility
-			    post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
-			    if [[ $post_result != "ok" ]]; then
-				write_to_stderr "$post_result"
-				exit_code=1
-			    fi
-			else
-			    post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-			    if [ $(get_ok_in_response $post_result) != "true" ]; then
-				write_to_stderr "$post_result"
-				exit_code=1
-			    fi
-			fi
-		fi
+		done
 	fi
 }
 
@@ -481,7 +484,7 @@ function parse_args()
 				shift
 				;;
 			-c|--channel)
-				opt_channel="$1"
+				opt_channel="$1 $opt_channel"
 				shift
 				;;
 			-u|--username)
@@ -819,6 +822,7 @@ function main()
 			fi
 			upload_result="$(curl -F file=@"$filename" -F token="$token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
 			if [ $(get_ok_in_response $upload_result) != "true" ]; then
+			    write_to_stderr "Upload failed. Please make sure slacktee is a member of $channel."
 			    err_exit 1 $upload_result
 			fi
 			access_url="$(echo "$upload_result" | awk 'match($0, /url_private":"([^"]*)"/) {print substr($0, RSTART+14, RLENGTH-15)}'|sed 's/\\//g')"
