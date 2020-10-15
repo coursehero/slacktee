@@ -129,7 +129,7 @@ options:
     -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
-	--debug                           Debug mode
+    --debug                           Debug mode
 EOF
 }
 
