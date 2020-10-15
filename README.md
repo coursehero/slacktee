@@ -21,9 +21,9 @@ git clone https://github.com/course-hero/slacktee.git
 bash ./slacktee/install.sh
 ```
 
-install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission. 
+install.sh copies slacktee.sh in `/usr/local/bin` and sets executable permission.
 
-If you'd like to install it in the different directory such as `/usr/bin`, pass the target directory as a parameter of install.sh. 
+If you'd like to install it in the different directory such as `/usr/bin`, pass the target directory as a parameter of install.sh.
 By default, `/usr/local/bin` may not be included in your `$PATH` environment variable (you should be aware of this when you use *slacktee* in *crontab*). So, if you would like to use *slacktee* without specifying its full path, coping it to `/usr/bin` may be a good idea.
 
 ```
@@ -54,10 +54,10 @@ These packages are maintained by Atomicorp and their repo can be easily installe
 ```
 wget -q -O - https://updates.atomicorp.com/installers/atomic | bash
 ```
-If you would prefer to download and install the package by yourself, you can find it in [their repository page](https://updates.atomicorp.com/channels/atomic/). 
+If you would prefer to download and install the package by yourself, you can find it in [their repository page](https://updates.atomicorp.com/channels/atomic/).
 
 It's still alpha version, but we also have a debian package in this github repo.
-* [slacktee-debian](https://github.com/course-hero/slacktee-debian) 
+* [slacktee-debian](https://github.com/course-hero/slacktee-debian)
 
 Configuration
 ------------
@@ -68,12 +68,12 @@ You can set up your local configuration file using interactive setup mode (--set
 
 You would need an authentication token for `slacktee`. It could be generated in 2 ways:
 
-1. Crate a Slack App (Preffered by Slack, but a bit complicated to setup)  
-Follow steps listed in [creating a Slack App](https://api.slack.com/slack-apps#creating_apps).  
-Next, create a bot user for your app, give the following 3 permissions to the Bot Token Scopes of your app: `chat:write`, `chat:write:public`, `files:write`. More information about the permission scopes can be found at [permission scopes](https://api.slack.com/docs/oauth-scopes). 
-[Note] Even with `files:write` permission, Slack App can upload files only to the channels where the Slack App is in. So, please add your Slack App to the channels where you want to upload files. 
+1. Crate a Slack App (Preffered by Slack, but a bit complicated to setup)
+Follow steps listed in [creating a Slack App](https://api.slack.com/slack-apps#creating_apps).
+Next, create a bot user for your app, give the following 3 permissions to the Bot Token Scopes of your app: `chat:write`, `chat:write:public`, `files:write`. More information about the permission scopes can be found at [permission scopes](https://api.slack.com/docs/oauth-scopes).
+[Note] Even with `files:write` permission, Slack App can upload files only to the channels where the Slack App is in. So, please add your Slack App to the channels where you want to upload files.
 At last, install the app to your workplace and get the Bot User OAuth token in the "OAuth & Permissions" section of the app management page.
-2. Add a bot (Easy to setup, but Slack may remove it in future)  
+2. Add a bot (Easy to setup, but Slack may remove it in future)
 Add a bot into your workspace through [Slack App Directory](https://cks-world.slack.com/apps/A0F7YS25R-bots). You can now find 'API Token' in the configuration page of the bot.
 
 ```
@@ -97,7 +97,7 @@ usage: slacktee.sh [options]
     --streaming                       Post input as it comes in, and update one comment with further input.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
-    -c, --channel channel_name        Post input values to specified channel or user.
+    -c, --channel(s) channel_name(s)  Post input values to specified channels or users. Use space as delimiter or multiple -c
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name|url         This icon is used for posting. You can use a word
                                       from http://www.emoji-cheat-sheet.com or a direct url to an image.
@@ -116,7 +116,7 @@ usage: slacktee.sh [options]
     -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input.
                                       You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
-    -q, --no-output                   Don't echo the input.  
+    -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
 ```
