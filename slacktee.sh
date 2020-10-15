@@ -790,7 +790,7 @@ function check_configuration()
 # ----------
 function main()
 {
-        exit_code=0
+	exit_code=0
 
 	parse_args "$@"
 	setup_environment
