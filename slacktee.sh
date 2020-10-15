@@ -4,13 +4,13 @@
 # https://github.com/course-hero/slacktee
 # ------------------------------------------------------------
 # Copyright 2017 Course Hero, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,6 +53,13 @@ cond_prefix_prefixes=()
 cond_prefix_patterns=()
 found_title_prefix=""
 
+# Since bash 3 doesn't support the associative array, we store channel name, channel id and timestamp separately
+streaming_channel_name=()
+streaming_channel_id=()
+streaming_timestamp=()
+
+debug=false
+
 function escape_string()
 {
 	local result=$(echo "$1" \
@@ -67,7 +74,7 @@ function write_to_stderr()
     echo "$me: $@" > /dev/null >&2
 }
 
-function err_exit() 
+function err_exit()
 {
 	local code=$1
 	shift
@@ -84,9 +91,9 @@ function handle_signal()
 {
     cleanup
     err_exit 1 "Aborting"
-}    
+}
 
-function cleanup() 
+function cleanup()
 {
 	[[ -f $filename ]] && rm "$filename"
 }
@@ -103,7 +110,7 @@ options:
     --streaming-batch-time n          Only update streaming slack output every n seconds. Defaults to 1.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
-    -c, --channel channel_name        Post input values to specified channel or user.
+    -c, --channel channel_name        Post input values to specified channel(s) or user(s). You can specify this multiple times.
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name|url         This icon is used for posting. You can use a word
                                       from http://www.emoji-cheat-sheet.com or a direct url to an image.
@@ -125,12 +132,18 @@ options:
     -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
+    --debug                           Debug mode
 EOF
 }
 
 function send_message()
 {
 	message="$1"
+
+	# Its a blank message, ignore
+	if [[ $message == "-- $title --\n" ]]; then
+	    return
+	fi
 
 	# Prepend the prefix to the message, if it's set
 	if [[ -z $attachment && -n $found_pattern_prefix ]]; then
@@ -185,7 +198,7 @@ function send_message()
 
 			if [[ ${#fields[@]} != 0 ]]; then
 				message_attr="$message_attr, \"fields\": ["
-				for field in "${fields[@]}"; do 
+				for field in "${fields[@]}"; do
 					message_attr="$message_attr $field,"
 				done
 				message_attr=${message_attr%?} # Remove last comma
@@ -195,7 +208,7 @@ function send_message()
 			# Close attachment
 			message_attr="$message_attr }], "
 		else
-			message_attr="\"text\": \"$wrapped_message\","	    
+			message_attr="\"text\": \"$wrapped_message\","
 		fi
 
 		icon_url=""
@@ -210,64 +223,99 @@ function send_message()
 
 		username=$(escape_string "$username")
 
-		if [[ $mode == "streaming" ]]; then
-			if [[ -z "$streaming_ts" ]]; then
+		for chan in $channel; do
+			$debug && printf "Sending message to channel '$chan'\n"
+			if [[ $mode == "streaming" ]]; then
+
+				# Check the streaming information
+				streaming_ts=""
+				if [[ ${#streaming_channel_name[@]} != 0 ]]; then
+					for i in "${!streaming_channel_name[@]}"; do
+						if [[ $chan == ${streaming_channel_name[$i]} ]]; then
+							streaming_ts=${streaming_timestamp[$streaming_info_index]}
+						fi
+					done
+				fi
+
+				if [[ -z "$streaming_ts" ]]; then
+					json="{\
+						\"channel\": \"$chan\", \
+						\"username\": \"$username\", \
+						$message_attr \"icon_emoji\": \"$icon_emoji\", \
+						\"icon_url\": \"$icon_url\" $parseMode}"
+
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
+					if [ $(get_ok_in_response $post_result) != "true" ]; then
+						write_to_stderr "$post_result"
+						exit_code=1
+					else
+						# set the channel name to the streaming_channel_name
+						streaming_channel_name+=("$chan")
+						streaming_info_index=$((${#streaming_channel_name[@]}-1))
+						$debug && printf "Set streaming info index=$streaming_info_index for $chan\n"
+
+						# chat.update requires the channel id, not the name
+						streaming_channel_id[$streaming_info_index]="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+						$debug && printf "Set streaming id=${streaming_channel_id[$streaming_info_index]} for $chan\n"
+
+						# timestamp is used as the message id
+						streaming_timestamp[$streaming_info_index]="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+						$debug && printf "Set streaming timestamp=${streaming_timestamp[$streaming_info_index]} for $chan\n"
+					fi
+				else
+					# batch updates every $streaming_batch_time seconds
+					now=$(date '+%s')
+					if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
+						streaming_last_update="$now"
+
+						# Because the if condition above is only checked once, we need to iterate all channels again
+						for c in $channel; do
+							if [[ ${#streaming_channel_name[@]} != 0 ]]; then
+								for i in "${!streaming_channel_name[@]}"; do
+									if [[ $c == ${streaming_channel_name[$i]} ]]; then
+										c_index=$i
+									fi
+								done
+							fi
+
+							$debug && printf "Streaming to channel='$c' id='${streaming_channel_id[$c_index]} ts=${streaming_timestamp[$c_index]}'\n"
+
+							json="{\
+								\"channel\": \"${streaming_channel_id[$c_index]}\", \
+								\"ts\": \"${streaming_timestamp[$c_index]}\", \
+								$message_attr \"icon_emoji\": \"$icon_emoji\", \
+								$parseMode}"
+
+							post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+							if [ $(get_ok_in_response $post_result) != "true" ]; then
+								write_to_stderr "$post_result"
+								exit_code=1
+							fi
+						done
+					fi
+				fi
+			else
 				json="{\
-					\"channel\": \"$channel\", \
+					\"channel\": \"$chan\", \
 					\"username\": \"$username\", \
 					$message_attr \"icon_emoji\": \"$icon_emoji\", \
 					\"icon_url\": \"$icon_url\" $parseMode}"
-
-				post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-				if [ $(get_ok_in_response $post_result) != "true" ]; then
-				    write_to_stderr "$post_result"
-				    exit_code=1
+				if [[ ! -z $webhook_url ]]; then
+					# Prioritize the webhook_url for the backward compatibility
+					post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
+					if [[ $post_result != "ok" ]]; then
+					write_to_stderr "$post_result"
+					exit_code=1
+					fi
 				else
-				    # chat.update requires the channel id, not the name
-				    streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
-				
-				    # timestamp is used as the message id
-				    streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
-				fi
-			else
-				# batch updates every $streaming_batch_time seconds
-				now=$(date '+%s')
-				if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
-					streaming_last_update="$now"
-					json="{\
-						\"channel\": \"$streaming_channel_id\", \
-						\"ts\": \"$streaming_ts\", \
-						$message_attr \"icon_emoji\": \"$icon_emoji\", \
-						$parseMode}"
-
-					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
 					if [ $(get_ok_in_response $post_result) != "true" ]; then
-					        write_to_stderr "$post_result"
-						exit_code=1
+					write_to_stderr "$post_result"
+					exit_code=1
 					fi
 				fi
 			fi
-		else
-			json="{\
-				\"channel\": \"$channel\", \
-				\"username\": \"$username\", \
-				$message_attr \"icon_emoji\": \"$icon_emoji\", \
-				\"icon_url\": \"$icon_url\" $parseMode}"
-			if [[ ! -z $webhook_url ]]; then
-			    # Prioritize the webhook_url for the backward compatibility
-			    post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
-			    if [[ $post_result != "ok" ]]; then
-				write_to_stderr "$post_result"
-				exit_code=1				
-			    fi
-			else
-			    post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-			    if [ $(get_ok_in_response $post_result) != "true" ]; then
-				write_to_stderr "$post_result"
-				exit_code=1
-			    fi
-			fi
-		fi
+		done
 	fi
 }
 
@@ -312,7 +360,7 @@ function process_line()
 		prefix=''
 		if [[ -z $attachment ]]; then
 			prefix=$title
-		fi  
+		fi
 		send_message "$prefix$line"
 	elif [[ $mode == "file" ]]; then
 		# We should use unescaped value in the file mode
@@ -337,7 +385,7 @@ function process_line()
 			last_found_pattern_color=$found_pattern_color
 		fi
 		found_pattern_color=$last_found_pattern_color
-		
+
 		if [[ -z "$text" ]]; then
 			text="$line"
 		else
@@ -447,7 +495,7 @@ EOF
 # ----------
 # Parse command line options
 # ----------
-function parse_args() 
+function parse_args()
 {
 	while [[ $# -gt 0 ]]; do
 		opt="$1"
@@ -476,7 +524,7 @@ function parse_args()
 				shift
 				;;
 			-c|--channel)
-				opt_channel="$1"
+				opt_channel="$1 $opt_channel"
 				shift
 				;;
 			-u|--username)
@@ -606,7 +654,7 @@ function parse_args()
 								# Found next command line option or empty. Error.
 								err_exit 1 "field value was not specified"
 								show_help
-								;;			   
+								;;
 							*)
 								field_title=$(escape_string "$1")
 								field_value=$(escape_string "$2")
@@ -629,6 +677,10 @@ function parse_args()
 				setup
 				exit 1
 				;;
+			--debug)
+				debug=true
+				shift
+				;;
 			*)
 				err_exit 1 "illegal option $opt"
 				show_help
@@ -640,7 +692,7 @@ function parse_args()
 # ---------
 # Read in our configurations
 # ---------
-function setup_environment() 
+function setup_environment()
 {
 	if [[ -e "/etc/slacktee.conf" ]]; then
 		. /etc/slacktee.conf
@@ -698,7 +750,7 @@ function setup_environment()
 # ----------
 # Validate configurations
 # ----------
-function check_configuration() 
+function check_configuration()
 {
 	if [[ -z $(command -v curl) ]]; then
 		err_exit 1 "curl is not installed. Please install it first."
@@ -736,10 +788,10 @@ function check_configuration()
 # ----------
 # Start script
 # ----------
-function main() 
+function main()
 {
-        exit_code=0
-    
+	exit_code=0
+
 	parse_args "$@"
 	setup_environment
 	check_configuration
@@ -804,7 +856,7 @@ function main()
 		unset streaming_last_update
 		# Use the latest matched color
 		found_pattern_color=$last_found_pattern_color
-		send_message "$text"	    
+		send_message "$text"
 	elif [[ "$mode" == "file" ]]; then
 		if [[ -s "$filename" ]]; then
 			channels_param=""

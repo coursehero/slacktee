@@ -5,6 +5,7 @@
 SLACKTEE="/bin/bash ../slacktee.sh"
 DATA="./test_data.txt"
 CHANNEL="sandbox"
+SUB_CHANNEL="sandbox2"
 
 echo "This test posts many messages to your Slack channel?"
 read -p "Are you sure to execute this test? [y/n] :" choice
@@ -60,6 +61,8 @@ echo "-- Channel (-c) with # --"
 echo "Channel (-c): Post to $CHANNEL with #" | $SLACKTEE '-c' "#"$CHANNEL
 echo "-- Channel (-c) with @ (Shouldn't happen anything) --"
 echo "Channel (-c): Post to @slackbot" | $SLACKTEE '-c' "@slackbot"
+echo "Channel (-c): Post to $CHANNEL and $SUB_CHANNEL with multiple options" | $SLACKTEE '-c' $CHANNEL '-c' $SUB_CHANNEL
+echo "Channel (-c): Post to $CHANNEL and $SUB_CHANNEL with a delimiter" | $SLACKTEE '-c' "$CHANNEL $SUB_CHANNEL"
 
 # Test 8: Username
 echo "-- Username (-u) --"
@@ -192,13 +195,22 @@ echo "hello ampersand &, equals =, quote ', and double quote \", please don't br
 # Test 23: Streaming mode - use the latest color
 (echo "normal"; sleep 1; echo "caution"; sleep 1; echo "failure"; sleep 1; echo "normal"; sleep 1; echo "alright") | $SLACKTEE --streaming -o "warning" "caution" -o "danger" "failure" -o "good" "alright"
 
-# Test 24: Newlines show correctly
+# Test 24: Streaming output to multiple channels
+{
+  echo "let's count to 5"
+  for i in {1..5}; do
+    echo $i
+    sleep 1
+  done
+} | $SLACKTEE --streaming -c $CHANNEL -c $SUB_CHANNEL
+
+# Test 25: Newlines show correctly
 echo -e "--streaming line one\n\nline three" | $SLACKTEE --streaming
 echo -e "--streaming -p line one\n\nline three" | $SLACKTEE --streaming -p
 echo -e "line one\n\nline three" | $SLACKTEE
 echo -e "-p line one\n\nline three" | $SLACKTEE -p
 
-# Test 25: Long messages
+# Test 26: Long messages
 long_message=$(printf '.%.0s' {1..5000})
 echo $long_message | $SLACKTEE -p # should be split up over two messages
 # these do not work correctly. Fixing seems complicated, and it's an edge case, so let's just document it here
