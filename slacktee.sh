@@ -52,6 +52,10 @@ internal_default_color="#C0C0C0"
 cond_prefix_prefixes=()
 cond_prefix_patterns=()
 found_title_prefix=""
+debug=false
+
+# Initialize a streaming_hash of channel(s) for streaming
+declare -A streaming_hash
 
 function escape_string()
 {
@@ -125,6 +129,7 @@ options:
     -q, --no-output                   Don't echo the input.
     --config config_file              Specify the location of the config file.
     --setup                           Setup slacktee interactively.
+	--debug                           Debug mode
 EOF
 }
 
@@ -216,8 +221,10 @@ function send_message()
 		username=$(escape_string "$username")
 
 		for chan in $channel; do
+			$debug && printf "Sending message to channel '$chan'\n"
 			if [[ $mode == "streaming" ]]; then
-				if [[ -z "$streaming_ts" ]]; then
+
+				if [[ -z "${streaming_hash[$chan]}" ]]; then
 					json="{\
 						\"channel\": \"$chan\", \
 						\"username\": \"$username\", \
@@ -230,27 +237,35 @@ function send_message()
 						exit_code=1
 					else
 						# chat.update requires the channel id, not the name
-						streaming_channel_id="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+						streaming_hash[$chan]="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+						$debug && printf "Set streaming id=${streaming_hash[$chan]} for $chan\n"
 
 						# timestamp is used as the message id
-						streaming_ts="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+						streaming_hash[${chan}_ts]="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
 					fi
 				else
 					# batch updates every $streaming_batch_time seconds
 					now=$(date '+%s')
 					if [ -z "$streaming_last_update" ] || [ "$now" -ge $[streaming_last_update + streaming_batch_time] ]; then
 						streaming_last_update="$now"
-						json="{\
-							\"channel\": \"$streaming_channel_id\", \
-							\"ts\": \"$streaming_ts\", \
-							$message_attr \"icon_emoji\": \"$icon_emoji\", \
-							$parseMode}"
 
-						post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
-						if [ $(get_ok_in_response $post_result) != "true" ]; then
+						# Because the if condition above is only checked once, we need to iterate all channels again
+						for c in $channel; do
+							$debug && printf "Streaming to channel='$c' id='${streaming_hash[$c]} ts=${streaming_hash[${c}_ts]}'\n"
+
+							json="{\
+								\"channel\": \"${streaming_hash[$c]}\", \
+								\"ts\": \"${streaming_hash[${c}_ts]}\", \
+								$message_attr \"icon_emoji\": \"$icon_emoji\", \
+								$parseMode}"
+
+							post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
+							if [ $(get_ok_in_response $post_result) != "true" ]; then
 								write_to_stderr "$post_result"
-							exit_code=1
-						fi
+								exit_code=1
+							fi
+						done
+
 					fi
 				fi
 			else
@@ -635,6 +650,10 @@ function parse_args()
 			--setup)
 				setup
 				exit 1
+				;;
+			--debug)
+				debug=true
+				shift
 				;;
 			*)
 				err_exit 1 "illegal option $opt"
