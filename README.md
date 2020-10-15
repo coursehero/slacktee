@@ -97,7 +97,7 @@ usage: slacktee.sh [options]
     --streaming                       Post input as it comes in, and update one comment with further input.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
-    -c, --channel(s) channel_name(s)  Post input values to specified channels or users. Use space as delimiter or multiple -c
+    -c, --channel channel_name        Post input values to specified channel(s) or user(s). You can specify this multiple times.
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name|url         This icon is used for posting. You can use a word
                                       from http://www.emoji-cheat-sheet.com or a direct url to an image.

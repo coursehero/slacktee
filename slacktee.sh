@@ -52,10 +52,13 @@ internal_default_color="#C0C0C0"
 cond_prefix_prefixes=()
 cond_prefix_patterns=()
 found_title_prefix=""
-debug=false
 
-# Initialize a streaming_hash of channel(s) for streaming
-declare -A streaming_hash
+# Since bash 3 doesn't support the associative array, we store channel name, channel id and timestamp separately
+streaming_channel_name=()
+streaming_channel_id=()
+streaming_timestamp=()
+
+debug=false
 
 function escape_string()
 {
@@ -107,7 +110,7 @@ options:
     --streaming-batch-time n          Only update streaming slack output every n seconds. Defaults to 1.
     -f, --file                        Post input values as a file.
     -l, --link                        Add a URL link to the message.
-    -c, --channel channel_name        Post input values to specified channel or user.
+    -c, --channel channel_name        Post input values to specified channel(s) or user(s). You can specify this multiple times.
     -u, --username user_name          This username is used for posting.
     -i, --icon emoji_name|url         This icon is used for posting. You can use a word
                                       from http://www.emoji-cheat-sheet.com or a direct url to an image.
@@ -224,7 +227,17 @@ function send_message()
 			$debug && printf "Sending message to channel '$chan'\n"
 			if [[ $mode == "streaming" ]]; then
 
-				if [[ -z "${streaming_hash[$chan]}" ]]; then
+				# Check the streaming information
+				streaming_ts=""
+				if [[ ${#streaming_channel_name[@]} != 0 ]]; then
+					for i in "${!streaming_channel_name[@]}"; do
+						if [[ $chan == ${streaming_channel_name[$i]} ]]; then
+							streaming_ts=${streaming_timestamp[$streaming_info_index]}
+						fi
+					done
+				fi
+
+				if [[ -z "$streaming_ts" ]]; then
 					json="{\
 						\"channel\": \"$chan\", \
 						\"username\": \"$username\", \
@@ -236,12 +249,18 @@ function send_message()
 						write_to_stderr "$post_result"
 						exit_code=1
 					else
+						# set the channel name to the streaming_channel_name
+						streaming_channel_name+=("$chan")
+						streaming_info_index=$((${#streaming_channel_name[@]}-1))
+						$debug && printf "Set streaming info index=$streaming_info_index for $chan\n"
+
 						# chat.update requires the channel id, not the name
-						streaming_hash[$chan]="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
-						$debug && printf "Set streaming id=${streaming_hash[$chan]} for $chan\n"
+						streaming_channel_id[$streaming_info_index]="$(echo "$post_result" | awk 'match($0, /channel":"([^"]*)"/) {print substr($0, RSTART+10, RLENGTH-11)}'|sed 's/\\//g')"
+						$debug && printf "Set streaming id=${streaming_channel_id[$streaming_info_index]} for $chan\n"
 
 						# timestamp is used as the message id
-						streaming_hash[${chan}_ts]="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+						streaming_timestamp[$streaming_info_index]="$(echo "$post_result" | awk 'match($0, /ts":"([^"]*)"/) {print substr($0, RSTART+5, RLENGTH-6)}'|sed 's/\\//g')"
+						$debug && printf "Set streaming timestamp=${streaming_timestamp[$streaming_info_index]} for $chan\n"
 					fi
 				else
 					# batch updates every $streaming_batch_time seconds
@@ -251,11 +270,19 @@ function send_message()
 
 						# Because the if condition above is only checked once, we need to iterate all channels again
 						for c in $channel; do
-							$debug && printf "Streaming to channel='$c' id='${streaming_hash[$c]} ts=${streaming_hash[${c}_ts]}'\n"
+							if [[ ${#streaming_channel_name[@]} != 0 ]]; then
+								for i in "${!streaming_channel_name[@]}"; do
+									if [[ $c == ${streaming_channel_name[$i]} ]]; then
+										c_index=$i
+									fi
+								done
+							fi
+
+							$debug && printf "Streaming to channel='$c' id='${streaming_channel_id[$c_index]} ts=${streaming_timestamp[$c_index]}'\n"
 
 							json="{\
-								\"channel\": \"${streaming_hash[$c]}\", \
-								\"ts\": \"${streaming_hash[${c}_ts]}\", \
+								\"channel\": \"${streaming_channel_id[$c_index]}\", \
+								\"ts\": \"${streaming_timestamp[$c_index]}\", \
 								$message_attr \"icon_emoji\": \"$icon_emoji\", \
 								$parseMode}"
 
@@ -265,7 +292,6 @@ function send_message()
 								exit_code=1
 							fi
 						done
-
 					fi
 				fi
 			else
