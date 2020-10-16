@@ -39,6 +39,12 @@ bash ./slacktee/install.sh /usr/local/bin/slacktee
 ```
 
 After the installation, interactive setup starts automatically.
+If you would like to install slacktee.sh without the interactive setup, you can skip it with `-s` or `--skip-setup` option.
+
+```
+# Install slacktee without the interactive setup
+bash ./slacktee/install.sh -s
+```
 
 ### Packages ###
 Packages are also availalbe for some platforms:
