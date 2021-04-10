@@ -2,8 +2,9 @@
 # - Test set of slacktee.sh -
 
 # Test settings
-SLACKTEE="/bin/bash ../slacktee.sh"
-DATA="./test_data.txt"
+TEST_DIR=`dirname ${BASH_SOURCE[0]}`
+SLACKTEE="/bin/bash ${TEST_DIR}/../slacktee.sh"
+DATA="${TEST_DIR}/test_data.txt"
 CHANNEL="sandbox"
 SUB_CHANNEL="sandbox2"
 
@@ -216,5 +217,8 @@ echo $long_message | $SLACKTEE -p # should be split up over two messages
 # these do not work correctly. Fixing seems complicated, and it's an edge case, so let's just document it here
 # echo $long_message | $SLACKTEE --streaming
 # echo $long_message | $SLACKTEE
+
+# Test 27: Carriage return should be removed
+echo -e "\rcarriage \rreturn\r" | $SLACKTEE
 
 echo "Test is done!"
