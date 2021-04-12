@@ -140,6 +140,9 @@ function send_message()
 {
 	message="$1"
 
+	# Remove carriage returns
+	message=`echo $message | tr -d '\r'`
+
 	# Its a blank message, ignore
 	if [[ $message == "-- $title --\n" ]]; then
 	    return
