@@ -298,11 +298,19 @@ function send_message()
 					fi
 				fi
 			else
-				json="{\
+				if [[ ! -z "$icon_url" ]];then
+					json="{\
+					\"channel\": \"$chan\", \
+					\"username\": \"$username\", \
+					$message_attr \"icon_url\": \"$icon_url\", \
+					$parseMode}"
+				else
+					json="{\
 					\"channel\": \"$chan\", \
 					\"username\": \"$username\", \
 					$message_attr \"icon_emoji\": \"$icon_emoji\", \
-					\"icon_url\": \"$icon_url\" $parseMode}"
+					$parseMode}"
+				fi
 				if [[ ! -z $webhook_url ]]; then
 					# Prioritize the webhook_url for the backward compatibility
 					post_result=$(curl -X POST --data-urlencode "payload=$json" "$webhook_url" 2> /dev/null)
