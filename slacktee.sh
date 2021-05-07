@@ -241,11 +241,19 @@ function send_message()
 				fi
 
 				if [[ -z "$streaming_ts" ]]; then
-					json="{\
-						\"channel\": \"$chan\", \
-						\"username\": \"$username\", \
-						$message_attr \"icon_emoji\": \"$icon_emoji\", \
-						\"icon_url\": \"$icon_url\" $parseMode}"
+					if [[ ! -z "$icon_url" ]];then
+						json="{\
+							\"channel\": \"$chan\", \
+							\"username\": \"$username\", \
+							$message_attr \"icon_url\": \"$icon_url\", \
+							$parseMode}"
+					else
+						json="{\
+							\"channel\": \"$chan\", \
+							\"username\": \"$username\", \
+							$message_attr \"icon_emoji\": \"$icon_emoji\", \
+							$parseMode}"
+					fi						
 
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
 					if [ $(get_ok_in_response $post_result) != "true" ]; then
