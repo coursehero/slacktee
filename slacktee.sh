@@ -256,7 +256,7 @@ function send_message()
 					fi						
 
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-					if [ $(get_ok_in_response $post_result) != "true" ]; then
+					if [ $(get_ok_in_response "$post_result") != "true" ]; then
 						write_to_stderr "$post_result"
 						exit_code=1
 					else
@@ -298,7 +298,7 @@ function send_message()
 								$parseMode}"
 
 							post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.update 2> /dev/null)
-							if [ $(get_ok_in_response $post_result) != "true" ]; then
+							if [ $(get_ok_in_response "$post_result") != "true" ]; then
 								write_to_stderr "$post_result"
 								exit_code=1
 							fi
@@ -328,7 +328,7 @@ function send_message()
 					fi
 				else
 					post_result=$(curl -H "Authorization: Bearer $token" -H 'Content-type: application/json; charset=utf-8' -X POST -d "$json" https://slack.com/api/chat.postMessage 2> /dev/null)
-					if [ $(get_ok_in_response $post_result) != "true" ]; then
+					if [ $(get_ok_in_response "$post_result") != "true" ]; then
 					write_to_stderr "$post_result"
 					exit_code=1
 					fi
@@ -884,7 +884,7 @@ function main()
 				channels_param="-F channels=$channel"
 			fi
 			upload_result="$(curl -F file=@"$filename" -F token="$token" $channels_param https://slack.com/api/files.upload 2> /dev/null)"
-			if [ $(get_ok_in_response $upload_result) != "true" ]; then
+			if [ $(get_ok_in_response "$upload_result") != "true" ]; then
 			    write_to_stderr "Upload failed. Please make sure slacktee is a member of $channel."
 			    err_exit 1 $upload_result
 			fi
