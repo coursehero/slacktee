@@ -104,35 +104,35 @@ function show_help()
 Usage: $me [options]
 
 options:
-    -h, --help                        Show this help.
-    -n, --no-buffering                Post input values without buffering.
-    --streaming                       Post input as it comes in, and update one comment with further input.
-    --streaming-batch-time n          Only update streaming slack output every n seconds. Defaults to 1.
-    -f, --file                        Post input values as a file.
-    -l, --link                        Add a URL link to the message.
-    -c, --channel channel_name        Post input values to specified channel(s) or user(s). You can specify this multiple times.
-    -u, --username user_name          This username is used for posting.
-    -i, --icon emoji_name|url         This icon is used for posting. You can use a word
-                                      from http://www.emoji-cheat-sheet.com or a direct url to an image.
-    -t, --title title_string          This title is added to posts.
-    -m, --message-formatting format   Switch message formatting (none|link_names|full).
-                                      See https://api.slack.com/docs/formatting for more details.
-    -p, --plain-text                  Don't surround the post with triple backticks.
-    -a, --attachment [color]          Use attachment (richly-formatted message)
-                                      Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)
-                                      See https://api.slack.com/docs/attachments for more details.
-    -e, --field title value           Add a field to the attachment. You can specify this multiple times.
-    -s, --short-field title value     Add a short field to the attachment. You can specify this multiple times.
-    -o, --cond-color color pattern    Change the attachment color if the specified Regex pattern matches the input.
-                                      You can specify this multiple times.
-                                      If more than one pattern matches, the latest matched pattern is used.
-    -d, --cond-prefix prefix pattern  This prefix is added to the message, if the specified Regex pattern matches the input.
-                                      You can specify this multiple times.
-                                      If more than one pattern matches, the latest matched pattern is used.
-    -q, --no-output                   Don't echo the input.
-    --config config_file              Specify the location of the config file.
-    --setup                           Setup slacktee interactively.
-    --debug                           Debug mode
+    -h, --help                             Show this help.
+    -n, --no-buffering                     Post input values without buffering.
+    --streaming                            Post input as it comes in, and update one comment with further input.
+    --streaming-batch-time n               Only update streaming slack output every n seconds. Defaults to 1.
+    -f, --file                             Post input values as a file.
+    -l, --link                             Add a URL link to the message.
+    -c, --channel channel_name|channel_id  Post input values to specified channel(s) or user(s). You can specify this multiple times. You can use channel IDs or names.
+    -u, --username user_name               This username is used for posting.
+    -i, --icon emoji_name|url              This icon is used for posting. You can use a word
+                                           from http://www.emoji-cheat-sheet.com or a direct url to an image.
+    -t, --title title_string               This title is added to posts.
+    -m, --message-formatting format        Switch message formatting (none|link_names|full).
+                                           See https://api.slack.com/docs/formatting for more details.
+    -p, --plain-text                       Don't surround the post with triple backticks.
+    -a, --attachment [color]               Use attachment (richly-formatted message)
+                                           Color can be 'good','warning','danger' or any hex color code (eg. #439FE0)
+                                           See https://api.slack.com/docs/attachments for more details.
+    -e, --field title value                Add a field to the attachment. You can specify this multiple times.
+    -s, --short-field title value          Add a short field to the attachment. You can specify this multiple times.
+    -o, --cond-color color pattern         Change the attachment color if the specified Regex pattern matches the input.
+                                           You can specify this multiple times.
+                                           If more than one pattern matches, the latest matched pattern is used.
+    -d, --cond-prefix prefix pattern       This prefix is added to the message, if the specified Regex pattern matches the input.
+                                           You can specify this multiple times.
+                                           If more than one pattern matches, the latest matched pattern is used.
+    -q, --no-output                        Don't echo the input.
+    --config config_file                   Specify the location of the config file.
+    --setup                                Setup slacktee interactively.
+    --debug                                Debug mode
 EOF
 }
 
@@ -789,8 +789,6 @@ function check_configuration()
 
 	if [[ $channel == "" ]]; then
 		err_exit 1 "Please specify a channel."
-	elif [[ ( "$channel" != "#"* ) && ( "$channel" != "@"* ) ]]; then
-		channel="#$channel"
 	fi
 
 	if [[ -n "$icon" ]]; then
